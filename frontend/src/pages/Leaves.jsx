@@ -228,6 +228,7 @@ function EmployeeLeaves() {
 }
 
 export default function Leaves() {
+  const role = localStorage.getItem('hrms_role') || 'admin';
   return (
     <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
       <Sidebar role={role} />
