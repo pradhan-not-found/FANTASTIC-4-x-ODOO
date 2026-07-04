@@ -8,6 +8,9 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const fillDemoAdmin = () => setForm({ email: 'admin@f4.co', password: 'admin123', role: 'admin' });
+  const fillDemoEmployee = () => setForm({ email: 'employee@f4.co', password: 'emp123', role: 'employee' });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -101,9 +104,16 @@ export default function SignIn() {
           <Link to="/signup" className="text-[var(--app-ink)] font-bold hover:underline transition-colors">Sign Up</Link>
         </p>
 
-        <div className="mt-6 border border-[rgba(0,0,0,0.08)] bg-[var(--app-soft)] rounded-lg p-3 text-[12px] text-[var(--app-muted)] text-center font-medium">
-          <strong className="text-[var(--app-ink)]">Demo:</strong> admin@f4.co / admin123 <br/>
-          <span className="opacity-80">or any email / emp123 (Employee)</span>
+        <div className="mt-6 border border-[rgba(0,0,0,0.08)] bg-[var(--app-soft)] rounded-xl p-4">
+          <div className="text-[11px] font-bold text-[var(--app-muted)] uppercase tracking-widest mb-3 text-center">Quick Demo Access</div>
+          <div className="flex gap-2">
+            <button type="button" onClick={fillDemoAdmin} className="flex-1 py-2 bg-white border border-[rgba(0,0,0,0.12)] rounded-lg text-[12.5px] font-bold text-[var(--app-ink)] shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5">
+              <Shield className="w-3.5 h-3.5" /> Admin
+            </button>
+            <button type="button" onClick={fillDemoEmployee} className="flex-1 py-2 bg-white border border-[rgba(0,0,0,0.12)] rounded-lg text-[12.5px] font-bold text-[var(--app-ink)] shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5">
+              <User className="w-3.5 h-3.5" /> Employee
+            </button>
+          </div>
         </div>
       </div>
     </div>
