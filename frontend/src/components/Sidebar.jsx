@@ -39,9 +39,7 @@ export default function Sidebar({ role = 'admin' }) {
   return (
     <aside className="w-64 h-screen fixed left-0 top-0 bg-transparent flex flex-col z-[100] overflow-y-auto">
       <div className="flex items-center gap-3 px-6 py-5 h-[60px]">
-        <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center text-white text-sm shrink-0">
-          W
-        </div>
+        <img src="/logo.png" alt="WorkAlign" className="w-8 h-8 object-contain shrink-0" />
         <div className="flex flex-col leading-[1.1]">
           <span className="text-[14px] font-bold text-[var(--app-ink)] tracking-tight">WorkAlign</span>
           <span className="text-[11px] text-[var(--app-muted)]">HR System</span>

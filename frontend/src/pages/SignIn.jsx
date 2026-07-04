@@ -33,9 +33,7 @@ export default function SignIn() {
 
       <div className="w-full max-w-[440px] bg-white border border-[rgba(0,0,0,0.08)] rounded-[20px] p-10 relative z-10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.05)] animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">
-            W
-          </div>
+          <img src="/logo.png" alt="WorkAlign" className="w-10 h-10 object-contain" />
           <div className="flex flex-col">
             <strong className="text-[17px] font-black text-[var(--app-ink)] tracking-tight">WorkAlign</strong>
             <span className="text-[11px] text-[var(--app-muted)] mt-0.5">Human Resource Management</span>
