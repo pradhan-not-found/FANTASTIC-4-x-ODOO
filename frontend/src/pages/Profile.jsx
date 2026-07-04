@@ -124,7 +124,7 @@ export default function Profile() {
                     {/* Fake Barcode */}
                     <div className="flex justify-center h-10 w-full px-2 opacity-80 overflow-hidden mix-blend-multiply">
                       {[3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5].map((w, i) => (
-                        <div key={i} className="bg-[#111] h-full" style={{ width: \`\${w * 1.2}px\`, marginRight: \`\${(w % 2 === 0 ? 1 : 2)}px\` }}></div>
+                        <div key={i} className="bg-[#111] h-full" style={{ width: `${w * 1.2}px`, marginRight: `${(w % 2 === 0 ? 1 : 2)}px` }}></div>
                       ))}
                     </div>
                   </div>
