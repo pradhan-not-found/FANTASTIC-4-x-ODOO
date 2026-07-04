@@ -9,7 +9,7 @@ import {
 const NAV_EMPLOYEE = [
   { label: 'HR Management', items: [
     { to: '/attendance', icon: Clock,           label: 'Attendance'     },
-    { to: '/leaves',     icon: CalendarDays,    label: 'Leave Requests' },
+    { to: '/leaves',     icon: CalendarDays,    label: 'Time Off'       },
     { to: '/payroll',    icon: Wallet,          label: 'Payroll'        },
   ]},
   { label: 'Communication', items: [
@@ -24,7 +24,7 @@ const NAV_ADMIN = [
   { label: 'HR Management', items: [
     { to: '/employees',  icon: Users,           label: 'Employees'       },
     { to: '/attendance', icon: Clock,           label: 'Attendance'      },
-    { to: '/leaves',     icon: CalendarDays,    label: 'Leave Approvals', badge: 2 },
+    { to: '/leaves',     icon: CalendarDays,    label: 'Time Off', badge: 2 },
     { to: '/payroll',    icon: Wallet,          label: 'Payroll'         },
   ]},
   { label: 'Communication', items: [

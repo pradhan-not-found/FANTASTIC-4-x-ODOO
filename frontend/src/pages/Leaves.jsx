@@ -1,68 +1,56 @@
 import { useState, useEffect } from 'react';
 import Topbar from '../components/Topbar';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Check, X, Paperclip, ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '../lib/utils';
 
-function InteractiveCalendar({ from, to, setFrom, setTo }) {
-  const daysInMonth = 31;
+// Helper function to render month calendar
+function MonthlyCalendar({ month, year, requests }) {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-  const handleDateClick = (day) => {
-    const dateStr = `2026-07-${String(day).padStart(2, '0')}`;
-    
-    if (!from || (from && to)) {
-      setFrom(dateStr);
-      setTo('');
-    } else {
-      const fromDate = new Date(from);
-      const clickedDate = new Date(dateStr);
-      if (clickedDate >= fromDate) {
-        setTo(dateStr);
-      } else {
-        setFrom(dateStr);
-        setTo('');
-      }
+  const getDayStatus = (day) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const req = requests.find(r => r.status === 'Approved' && dateStr >= r.fromDate && dateStr <= r.toDate);
+    if (req) {
+      if (req.type === 'Sick Leave') return 'sick';
+      return 'paid';
     }
-  };
-
-  const isSelected = (day) => {
-    const dateStr = `2026-07-${String(day).padStart(2, '0')}`;
-    if (dateStr === from || dateStr === to) return true;
-    if (from && to) {
-      const d = new Date(dateStr);
-      return d > new Date(from) && d < new Date(to);
-    }
-    return false;
+    return null;
   };
 
   return (
-    <div className="bg-white border border-[rgba(0,0,0,0.12)] rounded-xl p-4 mb-4 select-none">
+    <div className="bg-white border border-[rgba(0,0,0,0.12)] rounded-xl p-4 select-none w-full h-full flex flex-col">
       <div className="flex items-center justify-between mb-4 px-2">
         <button type="button" className="p-1 hover:bg-[rgba(0,0,0,0.04)] rounded-md transition-colors"><ChevronLeft className="w-4 h-4 text-[var(--app-muted)]" /></button>
-        <div className="text-[13.5px] font-bold text-[var(--app-ink)]">July 2026</div>
+        <div className="text-[14px] font-bold text-[var(--app-ink)]">{new Date(year, month).toLocaleString('default', { month: 'long' })} {year}</div>
         <button type="button" className="p-1 hover:bg-[rgba(0,0,0,0.04)] rounded-md transition-colors"><ChevronRight className="w-4 h-4 text-[var(--app-muted)]" /></button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center mb-2">
-        {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
-          <div key={d} className="text-[10px] font-bold text-[var(--app-muted)] uppercase">{d}</div>
+        {['S','M','T','W','T','F','S'].map((d, i) => (
+          <div key={i} className="text-[11px] font-bold text-[var(--app-muted)] uppercase">{d}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center">
-        <div className="p-2"></div><div className="p-2"></div><div className="p-2"></div>
+      <div className="grid grid-cols-7 gap-1 text-center flex-1">
+        {Array.from({ length: firstDay }).map((_, i) => (
+          <div key={`empty-${i}`} className="p-2"></div>
+        ))}
         {days.map(day => {
-          const selected = isSelected(day);
-          const isEndpoint = `2026-07-${String(day).padStart(2, '0')}` === from || `2026-07-${String(day).padStart(2, '0')}` === to;
-          
+          const status = getDayStatus(day);
           return (
             <div 
               key={day} 
-              onClick={() => handleDateClick(day)}
-              className={`relative cursor-pointer h-9 flex flex-col items-center justify-center rounded-lg transition-all text-[13px] font-medium ${
-                selected 
-                  ? (isEndpoint ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-50 text-blue-800') 
-                  : 'text-[var(--app-ink)] hover:bg-[rgba(0,0,0,0.04)]'
-              }`}
+              className={cn(
+                "relative h-10 flex flex-col items-center justify-center rounded-lg transition-all text-[13px] font-medium border border-transparent",
+                status === 'paid' ? 'bg-blue-50 text-blue-800 border-blue-200' :
+                status === 'sick' ? 'bg-pink-50 text-pink-800 border-pink-200' :
+                'text-[var(--app-ink)] hover:bg-[rgba(0,0,0,0.04)]'
+              )}
             >
               {day}
+              {status && (
+                <div className={cn("absolute bottom-1 w-1.5 h-1.5 rounded-full", status === 'paid' ? 'bg-blue-500' : 'bg-pink-500')}></div>
+              )}
             </div>
           );
         })}
@@ -74,6 +62,7 @@ function InteractiveCalendar({ from, to, setFrom, setTo }) {
 function AdminLeaves() {
   const [requests, setRequests] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [search, setSearch] = useState('');
   
   const fetchLeaves = async () => {
     try {
@@ -92,9 +81,6 @@ function AdminLeaves() {
     fetchLeaves();
   }, []);
 
-  const pending = requests.filter(l => l.status === 'Pending' || l.status === 'pending');
-  const history = requests.filter(l => l.status !== 'Pending' && l.status !== 'pending');
-
   const handleUpdateStatus = async (id, status) => {
     try {
       const response = await fetch(`http://localhost:3000/api/leaves/${id}`, {
@@ -107,110 +93,92 @@ function AdminLeaves() {
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to update status');
     }
   };
 
+  const filteredRequests = requests.filter(r => {
+    const emp = employees.find(e => e.id === r.empId);
+    const name = emp ? emp.name.toLowerCase() : r.empId.toLowerCase();
+    return name.includes(search.toLowerCase()) || r.type.toLowerCase().includes(search.toLowerCase());
+  });
+
   return (
-    <div className="flex-1 p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
-        <div>
-          <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">Leave Approvals</h1>
-          <p className="text-[13.5px] text-[var(--app-muted)]">Manage employee time-off requests.</p>
-        </div>
+    <div className="flex-1 p-6 w-full mx-auto animate-in fade-in duration-500 flex flex-col h-full bg-[#f8f9fa]">
+      <div className="bg-[#2a2f3a] p-4 rounded-xl mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4 text-white shadow-md">
+         <div className="flex items-center gap-4">
+            <button className="px-5 py-2 bg-[#8957e5] rounded-md text-[13px] font-bold text-white hover:opacity-90 shadow-sm transition-opacity uppercase tracking-wider">
+               New
+            </button>
+            <div className="relative">
+              <input 
+                 type="text"
+                 placeholder="Searchbar..."
+                 value={search}
+                 onChange={e => setSearch(e.target.value)}
+                 className="bg-transparent border border-white/20 rounded-md px-3 py-2 text-[13px] text-white outline-none focus:border-white/40 w-[240px] placeholder:text-white/40"
+              />
+              <Search className="absolute right-3 top-2.5 w-4 h-4 text-white/40" />
+            </div>
+         </div>
+         <div className="flex items-center gap-4 text-[13px]">
+            <div className="flex items-center gap-2">
+               <span className="text-[#60a5fa] font-bold">Paid time Off</span>
+               <span className="text-white/60 text-[11px]">24 Days Available</span>
+            </div>
+            <div className="w-px h-4 bg-white/20"></div>
+            <div className="flex items-center gap-2">
+               <span className="text-[#a78bfa] font-bold">Sick time off</span>
+               <span className="text-white/60 text-[11px]">09 Days Available</span>
+            </div>
+         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
-            <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight flex items-center gap-2">
-              Action Required
-              <span className="bg-amber-100 text-amber-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{pending.length}</span>
-            </h2>
-            <div className="flex flex-col gap-4">
-              {pending.map(l => {
+      <div className="flex-1 bg-[#2a2f3a] rounded-xl overflow-hidden flex flex-col shadow-md border border-[#3b414f]">
+        <div className="overflow-x-auto flex-1">
+          <table className="w-full text-[13px] text-left text-white/90 whitespace-nowrap">
+            <thead className="bg-[#2a2f3a] border-b border-[#3b414f]">
+              <tr>
+                <th className="py-3 px-4 font-bold text-white/70">Name</th>
+                <th className="py-3 px-4 font-bold text-white/70">Start Date</th>
+                <th className="py-3 px-4 font-bold text-white/70">End Date</th>
+                <th className="py-3 px-4 font-bold text-white/70">Time off Type</th>
+                <th className="py-3 px-4 font-bold text-white/70">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#3b414f] bg-[#1e222a]">
+              {filteredRequests.map(l => {
                 const emp = employees.find(e => e.id === l.empId);
+                const isPending = l.status.toLowerCase() === 'pending';
+                const typeColor = l.type === 'Paid Time off' ? 'text-[#60a5fa]' : 'text-[#a78bfa]';
                 return (
-                <div key={l.id} className="p-4 rounded-xl border border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.02)] flex flex-wrap gap-4 justify-between items-center transition-all hover:bg-[rgba(0,0,0,0.03)]">
-                  <div className="flex gap-4 items-center">
-                    <div className="w-10 h-10 rounded-full bg-white border border-[rgba(0,0,0,0.08)] flex items-center justify-center font-bold text-[13px] text-blue-700 shadow-sm shrink-0">
-                      {emp ? emp.name.substring(0,2).toUpperCase() : l.empId.substring(0,3)}
-                    </div>
-                    <div>
-                      <div className="font-bold text-[14px] text-[var(--app-ink)]">{emp ? emp.name : l.empId}</div>
-                      <div className="text-[12.5px] text-[var(--app-muted)] mt-0.5">{l.type} • {l.days} day{l.days > 1 ? 's' : ''}</div>
-                      <div className="text-[11.5px] text-[var(--app-muted)] mt-1 font-mono">{l.fromDate} to {l.toDate}</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => handleUpdateStatus(l.id, 'Rejected')} className="px-4 py-2 rounded-lg text-[12.5px] font-bold bg-white text-red-600 border border-[rgba(0,0,0,0.12)] hover:bg-red-50 transition-colors shadow-sm">Reject</button>
-                    <button onClick={() => handleUpdateStatus(l.id, 'Approved')} className="px-4 py-2 rounded-lg text-[12.5px] font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">Approve</button>
-                  </div>
-                </div>
-              )})}
-              {pending.length === 0 && (
-                <div className="text-center py-8 text-[var(--app-muted)] text-[13.5px]">All caught up! No pending requests.</div>
-              )}
-            </div>
-          </div>
-
-          <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
-            <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">Recent History</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13.5px] text-left">
-                <thead className="bg-[rgba(0,0,0,0.02)] border-b border-[rgba(0,0,0,0.06)]">
-                  <tr>
-                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Employee</th>
-                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Type & Dates</th>
-                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-                  {history.map(l => {
-                    const emp = employees.find(e => e.id === l.empId);
-                    return (
-                    <tr key={l.id}>
-                      <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{emp ? emp.name : l.empId}</td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-medium text-[var(--app-ink)]">{l.type}</div>
-                        <div className="text-[11.5px] text-[var(--app-muted)] font-mono">{l.fromDate} - {l.toDate}</div>
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border ${
-                          (l.status === 'approved' || l.status === 'Approved') ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
-                        }`}>
-                          {l.status}
+                <tr key={l.id} className="hover:bg-[#2a2f3a] transition-colors">
+                  <td className="py-3.5 px-4 font-medium">{emp ? emp.name : l.empId}</td>
+                  <td className="py-3.5 px-4 font-mono">{l.fromDate}</td>
+                  <td className="py-3.5 px-4 font-mono">{l.toDate}</td>
+                  <td className={`py-3.5 px-4 font-semibold ${typeColor}`}>{l.type}</td>
+                  <td className="py-3.5 px-4">
+                     {isPending ? (
+                        <div className="flex gap-2">
+                           <button onClick={() => handleUpdateStatus(l.id, 'Rejected')} className="w-6 h-6 rounded bg-[#ef4444] flex items-center justify-center hover:opacity-80 transition-opacity">
+                              <X className="w-4 h-4 text-white" />
+                           </button>
+                           <button onClick={() => handleUpdateStatus(l.id, 'Approved')} className="w-6 h-6 rounded bg-[#22c55e] flex items-center justify-center hover:opacity-80 transition-opacity">
+                              <Check className="w-4 h-4 text-white" />
+                           </button>
+                        </div>
+                     ) : (
+                        <span className={cn(
+                           "px-2 py-1 rounded text-[11px] font-bold uppercase",
+                           l.status === 'Approved' ? 'bg-[#22c55e]/20 text-[#22c55e]' : 'bg-[#ef4444]/20 text-[#ef4444]'
+                        )}>
+                           {l.status}
                         </span>
-                      </td>
-                    </tr>
-                  )})}
-                  {history.length === 0 && <tr><td colSpan="3" className="py-4 text-center text-[13px] text-[var(--app-muted)]">No leave history</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-6">
-          <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
-            <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">Who's Away</h2>
-            <div className="flex flex-col gap-4">
-              {history.filter(l => l.status === 'Approved').slice(0, 5).map(l => {
-                const emp = employees.find(e => e.id === l.empId);
-                return (
-                <div key={l.id} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center font-bold text-[11px] text-blue-700 shrink-0">
-                    {emp ? emp.name.substring(0,2).toUpperCase() : 'EMP'}
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-semibold text-[var(--app-ink)]">{emp ? emp.name : l.empId}</div>
-                    <div className="text-[11.5px] text-[var(--app-muted)]">{l.type} • {l.fromDate}</div>
-                  </div>
-                </div>
+                     )}
+                  </td>
+                </tr>
               )})}
-              {history.filter(l => l.status === 'Approved').length === 0 && <div className="text-[13px] text-[var(--app-muted)]">No one is currently away.</div>}
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -221,10 +189,10 @@ function EmployeeLeaves() {
   const [modalOpen, setModalOpen] = useState(false);
   const [requests, setRequests] = useState([]);
   
-  const [type, setType] = useState('Paid Leave');
+  const [type, setType] = useState('Paid Time off');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
-  const [reason, setReason] = useState('');
+  const [allocation, setAllocation] = useState('01.00');
 
   const user = JSON.parse(localStorage.getItem('hrms_user') || '{}');
 
@@ -242,15 +210,22 @@ function EmployeeLeaves() {
     fetchLeaves();
   }, [user.id]);
 
+  useEffect(() => {
+    if (from && to) {
+       const fromDate = new Date(from);
+       const toDate = new Date(to);
+       if (toDate >= fromDate) {
+          const diffTime = Math.abs(toDate - fromDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+          setAllocation(diffDays.toFixed(2));
+       }
+    }
+  }, [from, to]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!from || !to) return;
     
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
-    const diffTime = Math.abs(toDate - fromDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
     try {
       const response = await fetch('http://localhost:3000/api/leaves', {
         method: 'POST',
@@ -260,192 +235,139 @@ function EmployeeLeaves() {
           type,
           fromDate: from,
           toDate: to,
-          days: diffDays,
-          reason: reason || 'N/A'
+          days: parseFloat(allocation),
+          reason: 'N/A'
         })
       });
 
       if (response.ok) {
         fetchLeaves();
         setModalOpen(false);
-        setType('Paid Leave');
+        setType('Paid Time off');
         setFrom('');
         setTo('');
-        setReason('');
-      } else {
-        alert('Failed to submit request');
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to submit request');
     }
   };
 
-  const approvedLeaves = requests.filter(l => l.status === 'Approved').reduce((acc, l) => acc + (l.days || 1), 0);
-  const sickLeaves = requests.filter(l => l.status === 'Approved' && l.type === 'Sick Leave').reduce((acc, l) => acc + (l.days || 1), 0);
-  const casualLeaves = requests.filter(l => l.status === 'Approved' && l.type === 'Casual Leave').reduce((acc, l) => acc + (l.days || 1), 0);
-
   return (
-    <div className="flex-1 p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
-      <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
-        <div>
-          <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">Leave Requests</h1>
-          <p className="text-[13.5px] text-[var(--app-muted)]">Track your time off and apply for leaves.</p>
-        </div>
-        <button onClick={() => setModalOpen(true)} className="px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all border border-blue-600">
-          + New Request
-        </button>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: 'Annual Paid', val: `${15 - approvedLeaves} / 15`, sub: `${approvedLeaves} days used` },
-          { label: 'Sick Leave', val: `${7 - sickLeaves} / 7`, sub: `${sickLeaves} days used` },
-          { label: 'Casual Leave', val: `${5 - casualLeaves} / 5`, sub: `${casualLeaves} days used` },
-          { label: 'Pending', val: requests.filter(r => r.status === 'Pending').length.toString(), sub: 'Awaiting approval' }
-        ].map((stat, i) => (
-          <div key={i} className="liquid-card-shell rounded-[18px] p-5 card-elevate">
-            <div className="text-[12.5px] font-semibold uppercase tracking-widest text-[var(--app-muted)] mb-2">{stat.label}</div>
-            <div className="text-[24px] font-bold text-[var(--app-ink)] leading-none mb-1 tracking-tight">{stat.val}</div>
-            <div className="text-[11.5px] font-medium text-[var(--app-muted)]">{stat.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <div className="liquid-card-shell rounded-[18px] p-6 card-elevate h-full">
-            <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">My Requests</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13.5px] text-left">
-                <thead className="bg-[rgba(0,0,0,0.02)] border-b border-[rgba(0,0,0,0.06)]">
-                  <tr>
-                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Type</th>
-                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Dates</th>
-                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Days</th>
-                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-                  {requests.map(r => (
-                    <tr key={r.id} className="hover:bg-[rgba(0,0,0,0.01)] transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{r.type}</td>
-                      <td className="py-3.5 px-4 font-mono text-[var(--app-muted)] text-[12.5px]">{r.fromDate} to {r.toDate}</td>
-                      <td className="py-3.5 px-4 font-mono text-[var(--app-ink)] font-semibold">{r.days}</td>
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border ${
-                          (r.status === 'approved' || r.status === 'Approved') ? 'bg-green-50 text-green-700 border-green-200' :
-                          (r.status === 'rejected' || r.status === 'Rejected') ? 'bg-red-50 text-red-700 border-red-200' :
-                          'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}>
-                          {r.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                  {requests.length === 0 && <tr><td colSpan="4" className="py-8 text-center text-[13px] text-[var(--app-muted)]">No leave requests found.</td></tr>}
-                </tbody>
-              </table>
+    <div className="flex-1 p-6 w-full mx-auto animate-in fade-in duration-500 flex flex-col h-full bg-[#f8f9fa] overflow-y-auto">
+      <div className="bg-[#2a2f3a] p-4 rounded-xl mb-6 flex flex-col gap-4 text-white shadow-md">
+         <div className="flex gap-4 border-b border-white/10 pb-4">
+            <button onClick={() => setModalOpen(true)} className="px-5 py-2 bg-[#8957e5] rounded-md text-[13px] font-bold text-white hover:opacity-90 shadow-sm transition-opacity uppercase tracking-wider">
+               New
+            </button>
+         </div>
+         <div className="flex items-center gap-12 text-[14px]">
+            <div className="flex flex-col gap-1">
+               <span className="text-[#60a5fa] font-bold">Paid time Off</span>
+               <span className="text-white/60 text-[12px]">24 Days Available</span>
             </div>
-          </div>
-        </div>
+            <div className="flex flex-col gap-1">
+               <span className="text-[#a78bfa] font-bold">Sick time off</span>
+               <span className="text-white/60 text-[12px]">09 Days Available</span>
+            </div>
+         </div>
+      </div>
 
-        <div className="flex flex-col gap-6">
-          <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
-             <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">Upcoming Holidays</h2>
-             <div className="flex flex-col gap-3">
-               <div className="flex justify-between items-center p-3 rounded-lg bg-[rgba(0,0,0,0.02)] border border-[rgba(0,0,0,0.04)]">
-                 <div className="font-semibold text-[13px] text-[var(--app-ink)]">Independence Day</div>
-                 <div className="text-[12px] text-[var(--app-muted)] font-mono">Aug 15</div>
-               </div>
-               <div className="flex justify-between items-center p-3 rounded-lg bg-[rgba(0,0,0,0.02)] border border-[rgba(0,0,0,0.04)]">
-                 <div className="font-semibold text-[13px] text-[var(--app-ink)]">Gandhi Jayanti</div>
-                 <div className="text-[12px] text-[var(--app-muted)] font-mono">Oct 2</div>
-               </div>
-               <div className="flex justify-between items-center p-3 rounded-lg bg-[rgba(0,0,0,0.02)] border border-[rgba(0,0,0,0.04)]">
-                 <div className="font-semibold text-[13px] text-[var(--app-ink)]">Diwali</div>
-                 <div className="text-[12px] text-[var(--app-muted)] font-mono">Nov 12</div>
-               </div>
-             </div>
-          </div>
-        </div>
+      <div className="flex-1 bg-white rounded-xl shadow-md border border-[rgba(0,0,0,0.06)] p-6 min-h-[500px]">
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[400px]">
+            <MonthlyCalendar month={5} year={2026} requests={requests} />
+            <MonthlyCalendar month={6} year={2026} requests={requests} />
+         </div>
+         <div className="mt-6 flex flex-col gap-2 border-t border-[rgba(0,0,0,0.06)] pt-4">
+            <div className="text-[12px] font-bold text-[var(--app-ink)] uppercase tracking-wider mb-2">Legend</div>
+            <div className="flex flex-wrap items-center gap-6 text-[13px] text-[var(--app-muted)] font-medium">
+               <div className="flex items-center gap-2"><div className="w-3 h-3 bg-blue-500 rounded-sm"></div> Paid Time off</div>
+               <div className="flex items-center gap-2"><div className="w-3 h-3 bg-pink-500 rounded-sm"></div> Sick Leave</div>
+               <div className="flex items-center gap-2"><div className="w-3 h-3 border border-dashed border-gray-400 rounded-sm"></div> Unpaid Leaves</div>
+            </div>
+         </div>
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] backdrop-blur-md flex items-center justify-center z-[200] p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[24px] w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between p-6 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.01)] shrink-0">
-              <div>
-                <h2 className="text-[18px] font-bold tracking-tight text-[var(--app-ink)]">Request Leave</h2>
-                <p className="text-[13px] text-[var(--app-muted)] mt-0.5">Select dates and leave type.</p>
-              </div>
-              <button onClick={() => setModalOpen(false)} className="text-[var(--app-muted)] hover:text-[var(--app-ink)] bg-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.08)] rounded-full p-2 transition-colors">
-                <X className="w-4 h-4" />
-              </button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 animate-in fade-in duration-200">
+          <div className="bg-[#1e222a] border border-[#3b414f] rounded-2xl w-full max-w-[500px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between p-4 border-b border-[#3b414f] bg-[#2a2f3a]">
+               <h2 className="text-[15px] font-bold text-white">Time off Type: Request</h2>
+               <button onClick={() => setModalOpen(false)} className="text-white/60 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto no-scrollbar">
-              <InteractiveCalendar from={from} to={to} setFrom={setFrom} setTo={setTo} />
+            <form onSubmit={handleSubmit} className="p-6 text-[14px]">
+               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-4 items-center">
+                  <div className="text-white/80 font-medium">Employee</div>
+                  <div className="text-[#60a5fa] font-bold bg-[#60a5fa]/10 px-3 py-1.5 rounded w-max">[{user.name || 'Employee'}]</div>
+               </div>
 
-              <div className="space-y-4 mb-6 mt-4 border-t border-[rgba(0,0,0,0.06)] pt-4">
-                <div>
-                  <label className="block text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5">Leave Type</label>
+               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-4 items-center">
+                  <div className="text-white/80 font-medium">Time off Type</div>
                   <select 
-                    value={type} 
-                    onChange={e => setType(e.target.value)} 
-                    className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-xl text-[14px] bg-white text-[var(--app-ink)] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm font-medium cursor-pointer"
+                     value={type} 
+                     onChange={e => setType(e.target.value)} 
+                     className="bg-[#2a2f3a] border border-[#3b414f] text-[#60a5fa] font-bold rounded px-3 py-2 outline-none focus:border-[#60a5fa]/50 w-full"
                   >
-                    <option>Paid Leave</option>
-                    <option>Sick Leave</option>
-                    <option>Casual Leave</option>
-                    <option>Unpaid Leave</option>
+                     <option>Paid Time off</option>
+                     <option>Sick Leave</option>
+                     <option>Unpaid Leaves</option>
                   </select>
-                </div>
-                
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <label className="block text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5">From</label>
-                    <input 
-                      type="text" 
-                      value={from}
-                      readOnly
-                      placeholder="Select on calendar"
-                      className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-xl text-[14px] bg-[var(--app-soft)] text-[var(--app-muted)] font-mono outline-none shadow-sm cursor-not-allowed"
-                      required
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5">To</label>
-                    <input 
-                      type="text" 
-                      value={to}
-                      readOnly
-                      placeholder="Select on calendar"
-                      className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-xl text-[14px] bg-[var(--app-soft)] text-[var(--app-muted)] font-mono outline-none shadow-sm cursor-not-allowed"
-                      required
-                    />
-                  </div>
-                </div>
+               </div>
 
-                <div>
-                  <label className="block text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5">Reason (Optional)</label>
-                  <textarea 
-                    value={reason} 
-                    onChange={e => setReason(e.target.value)}
-                    placeholder="Brief reason for your leave..."
-                    className="w-full px-4 py-3 border border-[rgba(0,0,0,0.12)] rounded-xl text-[14px] bg-white text-[var(--app-ink)] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm min-h-[80px] resize-none"
-                  ></textarea>
-                </div>
-              </div>
-              
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-3 rounded-xl text-[14px] font-bold text-[var(--app-ink)] bg-white border border-[rgba(0,0,0,0.12)] hover:bg-[var(--app-soft)] transition-colors shadow-sm">
-                  Cancel
-                </button>
-                <button type="submit" disabled={!from || !to} className={`flex-1 py-3 rounded-xl text-[14px] font-bold text-white transition-all shadow-sm ${(!from || !to) ? 'bg-blue-400 cursor-not-allowed opacity-70' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                  Submit Request
-                </button>
-              </div>
+               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-4 items-center">
+                  <div className="text-white/80 font-medium">Validity Period</div>
+                  <div className="flex items-center gap-3 w-full">
+                     <input 
+                        type="date" 
+                        value={from}
+                        onChange={e => setFrom(e.target.value)}
+                        className="bg-[#2a2f3a] border border-[#3b414f] text-[#60a5fa] font-medium rounded px-3 py-2 outline-none focus:border-[#60a5fa]/50 w-full [color-scheme:dark]"
+                        required
+                     />
+                     <span className="text-white/60">To</span>
+                     <input 
+                        type="date" 
+                        value={to}
+                        onChange={e => setTo(e.target.value)}
+                        className="bg-[#2a2f3a] border border-[#3b414f] text-[#60a5fa] font-medium rounded px-3 py-2 outline-none focus:border-[#60a5fa]/50 w-full [color-scheme:dark]"
+                        required
+                     />
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-4 items-center">
+                  <div className="text-white/80 font-medium">Allocation</div>
+                  <div className="flex items-center gap-2">
+                     <input 
+                        type="text" 
+                        value={allocation}
+                        onChange={e => setAllocation(e.target.value)}
+                        className="bg-[#2a2f3a] border border-[#3b414f] text-[#60a5fa] font-bold rounded px-3 py-2 outline-none focus:border-[#60a5fa]/50 w-[80px] text-center"
+                     />
+                     <span className="text-white/60 text-[13px]">Days</span>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-8 items-start">
+                  <div className="text-white/80 font-medium mt-2">Attachments</div>
+                  <div className="flex items-center gap-3">
+                     <button type="button" className="w-10 h-10 bg-[#60a5fa] text-white rounded-md flex items-center justify-center hover:opacity-90 transition-opacity shrink-0">
+                        <Paperclip className="w-5 h-5" />
+                     </button>
+                     <span className="text-white/60 text-[12px]">(For sick leave certificate)</span>
+                  </div>
+               </div>
+
+               <div className="flex items-center gap-3">
+                  <button type="submit" disabled={!from || !to} className="px-5 py-2 bg-[#8957e5] rounded text-[13px] font-bold text-white hover:opacity-90 transition-opacity uppercase disabled:opacity-50">
+                     Submit
+                  </button>
+                  <button type="button" onClick={() => setModalOpen(false)} className="px-5 py-2 bg-transparent border border-white/20 rounded text-[13px] font-bold text-white/80 hover:bg-white/5 transition-colors uppercase">
+                     Discard
+                  </button>
+               </div>
             </form>
           </div>
         </div>
@@ -456,11 +378,31 @@ function EmployeeLeaves() {
 
 export default function Leaves() {
   const role = localStorage.getItem('hrms_role') || 'admin';
+  const [activeTab, setActiveTab] = useState('Time Off');
 
   return (
     <>
-      <Topbar title="Leave Management" subtitle="Time off requests and balances" />
-      <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+      <Topbar title="Time Off" subtitle="Manage time off requests" />
+      
+      {/* Sub Navigation */}
+      <div className="bg-white border-b border-[rgba(0,0,0,0.08)] px-8 flex items-center gap-6 h-[48px] shrink-0">
+         {['Time Off', 'Allocation'].map(tab => (
+            <button 
+               key={tab}
+               onClick={() => setActiveTab(tab)}
+               className={cn(
+                  "h-full px-2 border-b-2 text-[14px] font-semibold transition-all flex items-center",
+                  activeTab === tab 
+                     ? "border-[var(--app-ink)] text-[var(--app-ink)]" 
+                     : "border-transparent text-[var(--app-muted)] hover:text-[var(--app-ink)]"
+               )}
+            >
+               {tab}
+            </button>
+         ))}
+      </div>
+
+      <div className="flex-1 overflow-hidden relative flex flex-col bg-[#f8f9fa]">
         {role === 'admin' ? <AdminLeaves /> : <EmployeeLeaves />}
       </div>
     </>
