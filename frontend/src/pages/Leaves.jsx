@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { LEAVE_REQUESTS, EMPLOYEES } from '../data/mockData';
+import { X } from 'lucide-react';
 
 const role = localStorage.getItem('hrms_role') || 'admin';
 
@@ -186,7 +187,9 @@ function EmployeeLeaves() {
           <div className="bg-white rounded-[20px] p-6 w-full max-w-[480px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.2)] animate-in zoom-in-95 duration-200 border border-[rgba(0,0,0,0.08)]">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-[18px] font-bold text-[var(--app-ink)] tracking-tight">New Request</h2>
-              <button onClick={() => setModalOpen(false)} className="text-[var(--app-muted)] hover:text-[var(--app-ink)] p-1">✕</button>
+              <button onClick={() => setModalOpen(false)} className="text-[var(--app-muted)] hover:text-[var(--app-ink)] p-1">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             
             <div className="mb-4">

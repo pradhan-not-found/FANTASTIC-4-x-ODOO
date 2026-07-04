@@ -3,7 +3,7 @@ import Topbar from '../components/Topbar';
 import { EMPLOYEES, ATTENDANCE_TODAY, LEAVE_REQUESTS, DEPT_STATS } from '../data/mockData';
 import { 
   Users, CheckCircle2, Clock, Wallet, Check, X, Bell,
-  User as UserIcon, CalendarDays, History, ArrowRight
+  User as UserIcon, CalendarDays, History, ArrowRight, Sun, TrendingUp, CircleDot
 } from 'lucide-react';
 
 const role = localStorage.getItem('hrms_role') || 'admin';
@@ -15,8 +15,10 @@ function AdminDashboard() {
   return (
     <div className="flex-1 p-8 max-w-[1300px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
-        <div>
-          <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">Good morning, Souradeep 👋</h1>
+        <div className="flex items-center gap-2 mb-1">
+          <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
+          <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, Souradeep</h1>
+        </div>
           <p className="text-[13.5px] text-[var(--app-muted)]">Here's what's happening across your organization today.</p>
         </div>
         <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
@@ -26,10 +28,10 @@ function AdminDashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Total Employees', val: EMPLOYEES.length, sub: '↑ 2 this month', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', subColor: 'text-green-600' },
-          { label: 'Present Today', val: present, sub: `↑ ${Math.round((present / EMPLOYEES.length) * 100)}% rate`, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', subColor: 'text-green-600' },
-          { label: 'Pending Leaves', val: pending.length, sub: 'Needs review', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', subColor: 'text-[var(--app-muted)]' },
-          { label: 'Monthly Payroll', val: '₹4.3L', sub: '↑ Processed', icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-50', subColor: 'text-green-600' }
+          { label: 'Total Employees', val: EMPLOYEES.length, sub: <><TrendingUp className="w-3 h-3" /> 2 this month</>, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', subColor: 'text-green-600' },
+          { label: 'Present Today', val: present, sub: <><TrendingUp className="w-3 h-3" /> {Math.round((present / EMPLOYEES.length) * 100)}% rate</>, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', subColor: 'text-green-600' },
+          { label: 'Pending Leaves', val: pending.length, sub: <><CircleDot className="w-3 h-3" /> Needs review</>, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', subColor: 'text-[var(--app-muted)]' },
+          { label: 'Monthly Payroll', val: '₹4.3L', sub: <><Check className="w-3 h-3" /> Processed</>, icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-50', subColor: 'text-green-600' }
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -151,9 +153,9 @@ function EmployeeDashboard() {
   return (
     <div className="flex-1 p-8 max-w-[1300px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
-        <div>
-          <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">Good morning, Souradeep 👋</h1>
-          <p className="text-[13.5px] text-[var(--app-muted)]">You have 2 notifications today.</p>
+        <div className="flex items-center gap-2 mb-1">
+          <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
+          <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, Souradeep</h1>
         </div>
         <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
           Request Leave
@@ -162,10 +164,10 @@ function EmployeeDashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Days Present (June)', val: '22', sub: '↑ 95.6% attendance', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', subColor: 'text-green-600' },
+          { label: 'Days Present (June)', val: '22', sub: <><TrendingUp className="w-3 h-3" /> 95.6% attendance</>, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', subColor: 'text-green-600' },
           { label: 'Leave Balance', val: '8', sub: '3 Paid · 2 Sick · 3 Unpaid', icon: CalendarDays, color: 'text-indigo-600', bg: 'bg-indigo-50', subColor: 'text-[var(--app-muted)]' },
-          { label: 'Net Salary (June)', val: '₹90.3K', sub: '↑ Credited', icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50', subColor: 'text-green-600' },
-          { label: 'Today\'s Check-In', val: '09:05', sub: 'Active now', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', subColor: 'text-green-600' }
+          { label: 'Net Salary (June)', val: '₹90.3K', sub: <><Check className="w-3 h-3" /> Credited</>, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50', subColor: 'text-green-600' },
+          { label: 'Today\'s Check-In', val: '09:05', sub: <><CircleDot className="w-3 h-3 text-green-500" /> Active now</>, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', subColor: 'text-green-600' }
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (

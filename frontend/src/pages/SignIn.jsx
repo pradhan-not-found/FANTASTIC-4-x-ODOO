@@ -31,7 +31,7 @@ export default function SignIn() {
     <div className="min-h-screen flex items-center justify-center bg-[var(--app-canvas)] relative overflow-hidden">
       <div className="w-full max-w-[440px] bg-white border border-[rgba(0,0,0,0.08)] rounded-[24px] p-10 relative z-10 shadow-[0_12px_48px_-12px_rgba(0,0,0,0.06)] animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col items-center justify-center gap-3 mb-8">
-          <img src="/logo.png" alt="Logo" className="h-12 w-auto object-contain grayscale brightness-0 opacity-90" />
+          <img src="/logo.png" alt="Logo" className="h-14 w-auto object-contain grayscale brightness-0 opacity-90" />
         </div>
 
         <h2 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight text-center">Welcome back</h2>
