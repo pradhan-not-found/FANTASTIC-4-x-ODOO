@@ -14,6 +14,21 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [latestPayroll, setLatestPayroll] = useState(null);
 
+  // Salary config state (admin editable)
+  const [salaryForm, setSalaryForm] = useState({
+    monthlySalary: 0,
+    workingDaysPerWeek: 5,
+    breakTimeHrs: 1,
+    basicPct: 40,
+    hraPct: 40,     // % of basic
+    bonusPct: 8,
+    ltaPct: 5,
+    foodPct: 3,
+    pfPct: 12,      // % of basic
+    pt: 200,
+  });
+  const [salSaving, setSalSaving] = useState(false);
+
   const [editForm, setEditForm] = useState({
     name: '', department: '', position: '', phone: '', about: '',
     loveAboutJob: '', interests: '', skills: '', certifications: '',
@@ -42,6 +57,8 @@ export default function Profile() {
           try { data.certifications = JSON.parse(data.certifications); } catch(e){}
         }
         setProfile(data);
+        // Sync salary form with DB salary
+        setSalaryForm(prev => ({ ...prev, monthlySalary: data.salary || 0 }));
       }
       if (payrollRes.ok) {
         const payData = await payrollRes.json();
@@ -51,6 +68,23 @@ export default function Profile() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveSalary = async () => {
+    if (!profile) return;
+    setSalSaving(true);
+    try {
+      await fetch(`http://localhost:3000/api/employees/${profile.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ salary: salaryForm.monthlySalary })
+      });
+      fetchProfile();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSalSaving(false);
     }
   };
 
@@ -349,76 +383,146 @@ export default function Profile() {
             )}
 
             {activeTab === 'salary-info' && role === 'admin' && (() => {
-              const monthlySalary = profile.salary || 0;
-              const yearlySalary = monthlySalary * 12;
-              const basic = Math.round(monthlySalary * 0.4);
-              const hra = Math.round(basic * 0.4);
-              const performanceBonus = Math.round(monthlySalary * 0.08);
-              const lta = Math.round(monthlySalary * 0.05);
-              const foodAllowance = Math.round(monthlySalary * 0.03);
-              const pf = Math.round(basic * 0.12);
-              const pt = 200;
-              const tds = Math.max(0, Math.round((monthlySalary - 250000 / 12) * 0.1));
-              const totalDeductions = pf + pt + tds;
-              const totalAllowances = hra + performanceBonus + lta + foodAllowance;
-              const netPay = latestPayroll ? (latestPayroll.netSalary || latestPayroll.net || 0) : (basic + totalAllowances - totalDeductions);
+              const m = Number(salaryForm.monthlySalary) || 0;
+              const yearly = m * 12;
+              const basic = Math.round(m * salaryForm.basicPct / 100);
+              const hra = Math.round(basic * salaryForm.hraPct / 100);
+              const bonus = Math.round(m * salaryForm.bonusPct / 100);
+              const lta = Math.round(m * salaryForm.ltaPct / 100);
+              const food = Math.round(m * salaryForm.foodPct / 100);
+              const pf = Math.round(basic * salaryForm.pfPct / 100);
+              const pt = Number(salaryForm.pt) || 0;
+              const tds = Math.max(0, Math.round((m - 250000/12) * 0.1));
+              const netPay = basic + hra + bonus + lta + food - pf - pt - tds;
 
-              const components = [
-                { label: 'Basic Salary', amount: basic, type: 'earning', note: '40% of wage' },
-                { label: 'HRA', amount: hra, type: 'earning', note: '40% of Basic' },
-                { label: 'Performance Bonus', amount: performanceBonus, type: 'earning', note: '8% of wage' },
-                { label: 'Leave Travel Allowance', amount: lta, type: 'earning', note: '5% of wage' },
-                { label: 'Food Allowance', amount: foodAllowance, type: 'earning', note: '3% of wage' },
-                { label: 'Provident Fund', amount: pf, type: 'deduction', note: '12% of Basic' },
-                { label: 'Professional Tax', amount: pt, type: 'deduction', note: 'Fixed ₹200' },
-                { label: 'TDS', amount: tds, type: 'deduction', note: '10% of taxable income' },
-              ];
+              const sf = (key) => (e) => setSalaryForm(prev => ({ ...prev, [key]: e.target.value }));
+              const inCls = 'border border-[rgba(0,0,0,0.12)] rounded-lg px-3 py-1.5 text-[13px] outline-none focus:border-blue-500 bg-white font-mono text-[var(--app-ink)] w-full';
 
               return (
-                <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  {/* Wage Summary */}
-                  <div className="liquid-card-shell rounded-[18px] p-6 card-elevate bg-gradient-to-br from-blue-50/60 to-transparent">
-                    <h3 className="text-[15px] font-bold text-[var(--app-ink)] tracking-tight mb-5 border-b border-[rgba(0,0,0,0.06)] pb-4">Wage Information</h3>
-                    <div className="grid grid-cols-2 gap-6">
+                <div className="flex flex-col gap-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  {/* Wage + Schedule */}
+                  <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
+                    <h3 className="text-[14px] font-bold text-[var(--app-ink)] tracking-tight mb-4 border-b border-[rgba(0,0,0,0.06)] pb-3">Salary Info</h3>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-4">
                       <div>
-                        <div className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Monthly Wage</div>
-                        <div className="text-[28px] font-black text-[var(--app-ink)] font-mono tracking-tight">₹{monthlySalary.toLocaleString()}</div>
-                        <div className="text-[12px] text-[var(--app-muted)] mt-1">per month</div>
+                        <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5 block">Month Wage</label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[var(--app-muted)] text-[13px]">₹</span>
+                          <input type="number" value={salaryForm.monthlySalary} onChange={sf('monthlySalary')} className={inCls} placeholder="50000" />
+                          <span className="text-[var(--app-muted)] text-[12px] shrink-0">/ Month</span>
+                        </div>
                       </div>
                       <div>
-                        <div className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Yearly Wage</div>
-                        <div className="text-[28px] font-black text-blue-600 font-mono tracking-tight">₹{yearlySalary.toLocaleString()}</div>
-                        <div className="text-[12px] text-[var(--app-muted)] mt-1">per annum (CTC)</div>
+                        <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5 block">Yearly Wage</label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[var(--app-muted)] text-[13px]">₹</span>
+                          <div className="border border-[rgba(0,0,0,0.08)] rounded-lg px-3 py-1.5 text-[13px] bg-[var(--app-soft)] font-mono text-[var(--app-muted)] flex-1">{yearly.toLocaleString()}</div>
+                          <span className="text-[var(--app-muted)] text-[12px] shrink-0">/ Yearly</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5 block">Working Days / Week</label>
+                        <input type="number" min="1" max="7" value={salaryForm.workingDaysPerWeek} onChange={sf('workingDaysPerWeek')} className={inCls} />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5 block">Break Time</label>
+                        <div className="flex items-center gap-2">
+                          <input type="number" min="0" step="0.5" value={salaryForm.breakTimeHrs} onChange={sf('breakTimeHrs')} className={inCls} />
+                          <span className="text-[var(--app-muted)] text-[12px] shrink-0">hrs</span>
+                        </div>
                       </div>
                     </div>
-                    {latestPayroll && (
-                      <div className="mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)] flex items-center justify-between">
-                        <div className="text-[13px] text-[var(--app-muted)]">Last payroll: <span className="font-semibold text-[var(--app-ink)]">{latestPayroll.month}</span></div>
-                        <div className="text-[13px] font-bold text-green-700">Net: ₹{netPay.toLocaleString()}</div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Salary Components */}
-                  <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
-                    <h3 className="text-[15px] font-bold text-[var(--app-ink)] tracking-tight mb-5 border-b border-[rgba(0,0,0,0.06)] pb-4">Salary Components</h3>
-                    <div className="flex flex-col gap-3">
-                      {components.map((c, i) => (
-                        <div key={i} className="flex items-center justify-between py-2.5 border-b border-[rgba(0,0,0,0.04)] last:border-0">
-                          <div>
+                  <div className="liquid-card-shell rounded-[18px] overflow-hidden card-elevate">
+                    <div className="px-6 py-4 border-b border-[rgba(0,0,0,0.06)] bg-[var(--app-soft)]">
+                      <h3 className="text-[14px] font-bold text-[var(--app-ink)] tracking-tight">Salary Components</h3>
+                      <p className="text-[12px] text-[var(--app-muted)] mt-0.5">Values auto-calculated from monthly wage. Adjust percentages as needed.</p>
+                    </div>
+                    <div className="divide-y divide-[rgba(0,0,0,0.05)]">
+                      {[
+                        { label: 'Basic Salary', note: '% of wage', pctKey: 'basicPct', amount: basic, color: 'text-green-700' },
+                        { label: 'HRA', note: '% of Basic', pctKey: 'hraPct', amount: hra, color: 'text-green-700' },
+                        { label: 'Performance Bonus', note: '% of wage', pctKey: 'bonusPct', amount: bonus, color: 'text-green-700' },
+                        { label: 'Leave Travel Allowance', note: '% of wage', pctKey: 'ltaPct', amount: lta, color: 'text-green-700' },
+                        { label: 'Food Allowance', note: '% of wage', pctKey: 'foodPct', amount: food, color: 'text-green-700' },
+                      ].map((c, i) => (
+                        <div key={i} className="flex items-center gap-4 px-6 py-3 hover:bg-[rgba(0,0,0,0.01)] transition-colors">
+                          <div className="flex-1">
                             <div className="text-[13.5px] font-semibold text-[var(--app-ink)]">{c.label}</div>
-                            <div className="text-[11.5px] text-[var(--app-muted)] mt-0.5">{c.note}</div>
+                            <div className="text-[11px] text-[var(--app-muted)]">{c.note}</div>
                           </div>
-                          <div className={`font-mono font-bold text-[14px] ${c.type === 'deduction' ? 'text-red-600' : 'text-green-700'}`}>
-                            {c.type === 'deduction' ? '-' : '+'}₹{c.amount.toLocaleString()}
+                          <div className="font-mono text-[13px] font-bold text-[var(--app-ink)] w-28 text-right">₹{c.amount.toLocaleString()} / month</div>
+                          <div className="flex items-center gap-1 w-20">
+                            <input type="number" min="0" max="100" step="0.5" value={salaryForm[c.pctKey]} onChange={sf(c.pctKey)} className="border border-[rgba(0,0,0,0.12)] rounded-md px-2 py-1 text-[12px] font-mono w-full outline-none focus:border-blue-500 bg-white text-center" />
+                            <span className="text-[var(--app-muted)] text-[12px]">%</span>
                           </div>
                         </div>
                       ))}
-                      <div className="flex items-center justify-between pt-3 mt-1 border-t-2 border-[rgba(0,0,0,0.08)]">
+
+                      {/* Deductions header */}
+                      <div className="px-6 py-2 bg-red-50/50">
+                        <span className="text-[11px] font-bold uppercase tracking-widest text-red-500">Deductions</span>
+                      </div>
+
+                      {/* PF */}
+                      <div className="flex items-center gap-4 px-6 py-3 hover:bg-[rgba(0,0,0,0.01)] transition-colors">
+                        <div className="flex-1">
+                          <div className="text-[13.5px] font-semibold text-[var(--app-ink)]">Provident Fund (PF)</div>
+                          <div className="text-[11px] text-[var(--app-muted)]">% of Basic (Employee contribution)</div>
+                        </div>
+                        <div className="font-mono text-[13px] font-bold text-red-600 w-28 text-right">-₹{pf.toLocaleString()} / month</div>
+                        <div className="flex items-center gap-1 w-20">
+                          <input type="number" min="0" max="100" step="0.5" value={salaryForm.pfPct} onChange={sf('pfPct')} className="border border-[rgba(0,0,0,0.12)] rounded-md px-2 py-1 text-[12px] font-mono w-full outline-none focus:border-blue-500 bg-white text-center" />
+                          <span className="text-[var(--app-muted)] text-[12px]">%</span>
+                        </div>
+                      </div>
+                      {/* PT */}
+                      <div className="flex items-center gap-4 px-6 py-3 hover:bg-[rgba(0,0,0,0.01)] transition-colors">
+                        <div className="flex-1">
+                          <div className="text-[13.5px] font-semibold text-[var(--app-ink)]">Professional Tax</div>
+                          <div className="text-[11px] text-[var(--app-muted)]">Fixed statutory deduction</div>
+                        </div>
+                        <div className="font-mono text-[13px] font-bold text-red-600 w-28 text-right">-₹{pt.toLocaleString()} / month</div>
+                        <div className="flex items-center gap-1 w-20">
+                          <input type="number" min="0" value={salaryForm.pt} onChange={sf('pt')} className="border border-[rgba(0,0,0,0.12)] rounded-md px-2 py-1 text-[12px] font-mono w-full outline-none focus:border-blue-500 bg-white text-center" />
+                          <span className="text-[var(--app-muted)] text-[12px]">₹</span>
+                        </div>
+                      </div>
+                      {/* TDS */}
+                      <div className="flex items-center gap-4 px-6 py-3 hover:bg-[rgba(0,0,0,0.01)] transition-colors">
+                        <div className="flex-1">
+                          <div className="text-[13.5px] font-semibold text-[var(--app-ink)]">TDS</div>
+                          <div className="text-[11px] text-[var(--app-muted)]">10% of taxable income (auto-calculated)</div>
+                        </div>
+                        <div className="font-mono text-[13px] font-bold text-red-600 w-28 text-right">-₹{tds.toLocaleString()} / month</div>
+                        <div className="w-20" />
+                      </div>
+
+                      {/* Net Pay total */}
+                      <div className="flex items-center justify-between px-6 py-4 bg-blue-50/50 border-t-2 border-blue-100">
                         <div className="text-[14px] font-bold text-[var(--app-ink)]">Estimated Net Pay</div>
-                        <div className="font-mono font-black text-[16px] text-blue-600">₹{(basic + totalAllowances - totalDeductions).toLocaleString()}</div>
+                        <div className="font-mono font-black text-[18px] text-blue-600">₹{Math.max(0, netPay).toLocaleString()}</div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end gap-3">
+                    {latestPayroll && (
+                      <div className="flex items-center text-[12.5px] text-[var(--app-muted)] mr-auto">
+                        Last payroll: <span className="font-semibold text-[var(--app-ink)] ml-1">{latestPayroll.month}</span>
+                        <span className="ml-3 font-bold text-green-700">Net paid: ₹{(latestPayroll.netSalary || latestPayroll.net || 0).toLocaleString()}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={handleSaveSalary}
+                      disabled={salSaving}
+                      className="px-6 py-2.5 rounded-xl text-[13.5px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm disabled:opacity-50"
+                    >
+                      {salSaving ? 'Saving...' : '💾 Save Salary Info'}
+                    </button>
                   </div>
                 </div>
               );

@@ -253,26 +253,27 @@ function EmployeeLeaves() {
   };
 
   return (
-    <div className="flex-1 p-6 w-full mx-auto animate-in fade-in duration-500 flex flex-col h-full bg-[#f8f9fa] overflow-y-auto">
-      <div className="bg-[#2a2f3a] p-4 rounded-xl mb-6 flex flex-col gap-4 text-white shadow-md">
-         <div className="flex gap-4 border-b border-white/10 pb-4">
-            <button onClick={() => setModalOpen(true)} className="px-5 py-2 bg-[#8957e5] rounded-md text-[13px] font-bold text-white hover:opacity-90 shadow-sm transition-opacity uppercase tracking-wider">
-               New
+    <div className="flex-1 p-6 w-full mx-auto animate-in fade-in duration-500 flex flex-col h-full overflow-y-auto">
+      {/* Leave Balance Banner */}
+      <div className="liquid-card-shell border border-[rgba(0,0,0,0.07)] rounded-2xl p-5 mb-6 flex flex-col gap-4 shadow-sm card-elevate">
+         <div className="flex gap-4 border-b border-[rgba(0,0,0,0.06)] pb-4">
+            <button onClick={() => setModalOpen(true)} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-[13px] font-bold text-white shadow-sm transition-all uppercase tracking-wider">
+               + New Request
             </button>
          </div>
          <div className="flex items-center gap-12 text-[14px]">
             <div className="flex flex-col gap-1">
-               <span className="text-[#60a5fa] font-bold">Paid time Off</span>
-               <span className="text-white/60 text-[12px]">24 Days Available</span>
+               <span className="text-blue-600 font-bold">Paid Time Off</span>
+               <span className="text-[var(--app-muted)] text-[12px]">24 Days Available</span>
             </div>
             <div className="flex flex-col gap-1">
-               <span className="text-[#a78bfa] font-bold">Sick time off</span>
-               <span className="text-white/60 text-[12px]">09 Days Available</span>
+               <span className="text-purple-600 font-bold">Sick Time Off</span>
+               <span className="text-[var(--app-muted)] text-[12px]">09 Days Available</span>
             </div>
          </div>
       </div>
 
-      <div className="flex-1 bg-white rounded-xl shadow-md border border-[rgba(0,0,0,0.06)] p-6 min-h-[500px]">
+      <div className="flex-1 bg-white rounded-2xl shadow-sm border border-[rgba(0,0,0,0.07)] p-6 min-h-[500px] card-elevate">
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[400px]">
             <MonthlyCalendar month={5} year={2026} requests={requests} />
             <MonthlyCalendar month={6} year={2026} requests={requests} />
@@ -288,27 +289,30 @@ function EmployeeLeaves() {
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 animate-in fade-in duration-200">
-          <div className="bg-[#1e222a] border border-[#3b414f] rounded-2xl w-full max-w-[500px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between p-4 border-b border-[#3b414f] bg-[#2a2f3a]">
-               <h2 className="text-[15px] font-bold text-white">Time off Type: Request</h2>
-               <button onClick={() => setModalOpen(false)} className="text-white/60 hover:text-white transition-colors">
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.45)] backdrop-blur-md flex items-center justify-center z-[200] p-4 animate-in fade-in duration-200">
+          <div className="bg-white border border-[rgba(0,0,0,0.08)] rounded-2xl w-full max-w-[500px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between p-5 border-b border-[rgba(0,0,0,0.06)] bg-[var(--app-soft)]">
+               <div>
+                 <h2 className="text-[16px] font-bold text-[var(--app-ink)] tracking-tight">New Time Off Request</h2>
+                 <p className="text-[12.5px] text-[var(--app-muted)] mt-0.5">Submit a leave request for approval.</p>
+               </div>
+               <button onClick={() => setModalOpen(false)} className="p-2 rounded-full hover:bg-[rgba(0,0,0,0.06)] text-[var(--app-muted)] transition-colors">
                   <X className="w-5 h-5" />
                </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 text-[14px]">
-               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-4 items-center">
-                  <div className="text-white/80 font-medium">Employee</div>
-                  <div className="text-[#60a5fa] font-bold bg-[#60a5fa]/10 px-3 py-1.5 rounded w-max">[{user.name || 'Employee'}]</div>
+            <form onSubmit={handleSubmit} className="p-6 text-[14px] flex flex-col gap-5">
+               <div className="grid grid-cols-[140px_1fr] gap-4 items-center">
+                  <div className="text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Employee</div>
+                  <div className="text-blue-600 font-bold bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg w-max text-[13px]">{user.name || 'Employee'}</div>
                </div>
 
-               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-4 items-center">
-                  <div className="text-white/80 font-medium">Time off Type</div>
+               <div className="grid grid-cols-[140px_1fr] gap-4 items-center">
+                  <div className="text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Time Off Type</div>
                   <select 
                      value={type} 
                      onChange={e => setType(e.target.value)} 
-                     className="bg-[#2a2f3a] border border-[#3b414f] text-[#60a5fa] font-bold rounded px-3 py-2 outline-none focus:border-[#60a5fa]/50 w-full"
+                     className="border border-[rgba(0,0,0,0.12)] bg-white text-[var(--app-ink)] font-semibold rounded-xl px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 w-full text-[13.5px]"
                   >
                      <option>Paid Time off</option>
                      <option>Sick Leave</option>
@@ -316,55 +320,55 @@ function EmployeeLeaves() {
                   </select>
                </div>
 
-               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-4 items-center">
-                  <div className="text-white/80 font-medium">Validity Period</div>
+               <div className="grid grid-cols-[140px_1fr] gap-4 items-center">
+                  <div className="text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Period</div>
                   <div className="flex items-center gap-3 w-full">
                      <input 
                         type="date" 
                         value={from}
                         onChange={e => setFrom(e.target.value)}
-                        className="bg-[#2a2f3a] border border-[#3b414f] text-[#60a5fa] font-medium rounded px-3 py-2 outline-none focus:border-[#60a5fa]/50 w-full [color-scheme:dark]"
+                        className="border border-[rgba(0,0,0,0.12)] bg-white text-[var(--app-ink)] font-medium rounded-xl px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 w-full text-[13px]"
                         required
                      />
-                     <span className="text-white/60">To</span>
+                     <span className="text-[var(--app-muted)] text-[13px] font-medium shrink-0">to</span>
                      <input 
                         type="date" 
                         value={to}
                         onChange={e => setTo(e.target.value)}
-                        className="bg-[#2a2f3a] border border-[#3b414f] text-[#60a5fa] font-medium rounded px-3 py-2 outline-none focus:border-[#60a5fa]/50 w-full [color-scheme:dark]"
+                        className="border border-[rgba(0,0,0,0.12)] bg-white text-[var(--app-ink)] font-medium rounded-xl px-3 py-2 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 w-full text-[13px]"
                         required
                      />
                   </div>
                </div>
 
-               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-4 items-center">
-                  <div className="text-white/80 font-medium">Allocation</div>
+               <div className="grid grid-cols-[140px_1fr] gap-4 items-center">
+                  <div className="text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Allocation</div>
                   <div className="flex items-center gap-2">
                      <input 
                         type="text" 
                         value={allocation}
                         onChange={e => setAllocation(e.target.value)}
-                        className="bg-[#2a2f3a] border border-[#3b414f] text-[#60a5fa] font-bold rounded px-3 py-2 outline-none focus:border-[#60a5fa]/50 w-[80px] text-center"
+                        className="border border-[rgba(0,0,0,0.12)] bg-white text-[var(--app-ink)] font-bold rounded-xl px-3 py-2 outline-none focus:border-blue-500 w-[90px] text-center text-[13.5px]"
                      />
-                     <span className="text-white/60 text-[13px]">Days</span>
+                     <span className="text-[var(--app-muted)] text-[13px]">Days</span>
                   </div>
                </div>
 
-               <div className="grid grid-cols-[120px_1fr] sm:grid-cols-[140px_1fr] gap-4 mb-8 items-start">
-                  <div className="text-white/80 font-medium mt-2">Attachments</div>
+               <div className="grid grid-cols-[140px_1fr] gap-4 items-start">
+                  <div className="text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mt-2">Attachments</div>
                   <div className="flex items-center gap-3">
-                     <button type="button" className="w-10 h-10 bg-[#60a5fa] text-white rounded-md flex items-center justify-center hover:opacity-90 transition-opacity shrink-0">
+                     <button type="button" className="w-10 h-10 bg-blue-50 border border-blue-200 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-100 transition-colors shrink-0">
                         <Paperclip className="w-5 h-5" />
                      </button>
-                     <span className="text-white/60 text-[12px]">(For sick leave certificate)</span>
+                     <span className="text-[var(--app-muted)] text-[12px]">(For sick leave certificate)</span>
                   </div>
                </div>
 
-               <div className="flex items-center gap-3">
-                  <button type="submit" disabled={!from || !to} className="px-5 py-2 bg-[#8957e5] rounded text-[13px] font-bold text-white hover:opacity-90 transition-opacity uppercase disabled:opacity-50">
-                     Submit
+               <div className="flex items-center gap-3 pt-2 border-t border-[rgba(0,0,0,0.06)]">
+                  <button type="submit" disabled={!from || !to} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-[13.5px] font-bold text-white shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                     Submit Request
                   </button>
-                  <button type="button" onClick={() => setModalOpen(false)} className="px-5 py-2 bg-transparent border border-white/20 rounded text-[13px] font-bold text-white/80 hover:bg-white/5 transition-colors uppercase">
+                  <button type="button" onClick={() => setModalOpen(false)} className="px-6 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-xl text-[13.5px] font-bold text-[var(--app-muted)] hover:text-[var(--app-ink)] hover:bg-[var(--app-soft)] transition-colors">
                      Discard
                   </button>
                </div>
@@ -375,6 +379,8 @@ function EmployeeLeaves() {
     </div>
   );
 }
+
+
 
 export default function Leaves() {
   const role = localStorage.getItem('hrms_role') || 'admin';
