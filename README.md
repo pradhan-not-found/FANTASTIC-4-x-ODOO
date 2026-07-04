@@ -1,10 +1,18 @@
 <div align="center">
 
-<img src="https://hackathon.odoo.com/web/image/website/1/logo/Hackathon?unique=7ce7628" alt="Odoo Hackathon" height="100"/>
-&nbsp;&nbsp;&nbsp;
-<span style="font-size: 2.5rem; font-weight: 900; vertical-align: middle; color: #333;">✕</span>
-&nbsp;&nbsp;&nbsp;
-<img src="fantastic4.png" alt="Fantastic 4" height="100"/>
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td align="center" valign="middle">
+      <img src="https://hackathon.odoo.com/web/image/website/1/logo/Hackathon?unique=7ce7628" alt="Odoo Hackathon" height="100"/>
+    </td>
+    <td align="center" valign="middle" style="padding: 0 24px;">
+      <h2>✕</h2>
+    </td>
+    <td align="center" valign="middle">
+      <img src="fantastic4.png" alt="Fantastic 4" height="100"/>
+    </td>
+  </tr>
+</table>
 
 <br/>
 
