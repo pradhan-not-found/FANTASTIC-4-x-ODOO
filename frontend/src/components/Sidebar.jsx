@@ -1,10 +1,10 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { 
   LayoutDashboard, User, Clock, CalendarDays, Wallet, Users, LogOut,
   Bell, Building2, MessageSquare, Settings, ChevronUp, PanelLeftClose
 } from 'lucide-react';
-import { MY_PROFILE } from '../data/mockData';
 
 const NAV_EMPLOYEE = [
   { label: 'HR Management', items: [
@@ -40,8 +40,22 @@ export default function Sidebar({ role = 'admin' }) {
   const navigate = useNavigate();
   const nav = role === 'admin' ? NAV_ADMIN : NAV_EMPLOYEE;
 
+  const getUser = () => JSON.parse(localStorage.getItem('hrms_user') || '{}');
+  const [user, setUser] = useState(getUser);
+
+  useEffect(() => {
+    const onStorage = () => setUser(getUser());
+    window.addEventListener('storage', onStorage);
+    // Poll every 2s so avatar updates from Profile page are reflected immediately
+    const interval = setInterval(() => setUser(getUser()), 2000);
+    return () => { window.removeEventListener('storage', onStorage); clearInterval(interval); };
+  }, []);
+
+  const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
+
   const handleLogout = () => {
     localStorage.removeItem('hrms_role');
+    localStorage.removeItem('hrms_user');
     navigate('/');
   };
 
@@ -67,11 +81,12 @@ export default function Sidebar({ role = 'admin' }) {
         {/* Bottom */}
         <div className="flex flex-col items-center gap-4 w-full px-2">
           <div className="w-5 h-5 rounded-full border-[2.5px] border-green-500 bg-white shadow-sm"></div>
-          <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden cursor-pointer border border-[rgba(0,0,0,0.08)] shadow-sm hover:shadow-md transition-all">
-             <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100/50 flex items-center justify-center text-blue-700 font-bold text-[13px]">
-               {MY_PROFILE.name.split(' ').map(n=>n[0]).join('')}
-             </div>
-          </div>
+          <Link to="/profile" className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden cursor-pointer border border-[rgba(0,0,0,0.08)] shadow-sm hover:shadow-md transition-all shrink-0">
+            {user.avatar
+              ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+              : <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100/50 flex items-center justify-center text-blue-700 font-bold text-[13px]">{initials}</div>
+            }
+          </Link>
         </div>
       </aside>
 
@@ -139,6 +154,18 @@ export default function Sidebar({ role = 'admin' }) {
         </nav>
 
         <div className="p-4 border-t border-[rgba(0,0,0,0.06)]">
+          <Link to="/profile" className="flex items-center gap-3 px-3 py-2.5 mb-1 rounded-[10px] hover:bg-[rgba(0,0,0,0.03)] transition-colors">
+            <div className="w-8 h-8 rounded-full bg-gray-100 overflow-hidden border border-[rgba(0,0,0,0.08)] shrink-0">
+              {user.avatar
+                ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                : <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100/50 flex items-center justify-center text-blue-700 font-bold text-[11px]">{initials}</div>
+              }
+            </div>
+            <div className="min-w-0">
+              <div className="text-[13px] font-semibold text-[var(--app-ink)] truncate">{user.name || 'User'}</div>
+              <div className="text-[11px] text-[var(--app-muted)] truncate">{user.email || ''}</div>
+            </div>
+          </Link>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13.5px] font-medium transition-all duration-200 w-full text-[var(--app-muted)] hover:text-red-600 hover:bg-red-50"

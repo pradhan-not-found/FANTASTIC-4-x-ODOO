@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 import Topbar from '../components/Topbar';
 
+// Calculate hours difference between two "HH:MM" strings
+function calcHours(checkIn, checkOut) {
+  if (!checkIn || !checkOut) return null;
+  const [inH, inM] = checkIn.split(':').map(Number);
+  const [outH, outM] = checkOut.split(':').map(Number);
+  const diffMins = (outH * 60 + outM) - (inH * 60 + inM);
+  if (diffMins <= 0) return null;
+  const h = Math.floor(diffMins / 60);
+  const m = diffMins % 60;
+  return `${h}h ${m}m`;
+}
+
 function AdminAttendance() {
   const [viewMode, setViewMode] = useState('daily');
   const [employees, setEmployees] = useState([]);
@@ -233,7 +245,18 @@ function EmployeeAttendance() {
           </div>
           <div className="text-right">
             <div className="text-[13px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Hours Logged</div>
-            <div className="text-[22px] font-bold text-blue-600 tracking-tight font-mono">{todaysAttendance.hours || 'Calculating...'}</div>
+            <div className="text-[22px] font-bold text-blue-600 tracking-tight font-mono">
+              {todaysAttendance.checkOut
+                ? calcHours(todaysAttendance.checkIn, todaysAttendance.checkOut)
+                : (() => {
+                    const [inH, inM] = todaysAttendance.checkIn.split(':').map(Number);
+                    const now = new Date();
+                    const diffMins = (now.getHours() * 60 + now.getMinutes()) - (inH * 60 + inM);
+                    if (diffMins <= 0) return '0h 0m';
+                    return `${Math.floor(diffMins/60)}h ${diffMins%60}m`;
+                  })()
+              }
+            </div>
           </div>
         </div>
       )}
@@ -266,7 +289,7 @@ function EmployeeAttendance() {
                     <td className="py-3.5 px-5 font-semibold text-[var(--app-ink)]">{r.date}</td>
                     <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-[12.5px]">{r.checkIn}</td>
                     <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-[12.5px]">{r.checkOut || '-'}</td>
-                    <td className="py-3.5 px-5 font-mono text-[var(--app-ink)] text-[12.5px] font-semibold">{r.hours || '-'}</td>
+                    <td className="py-3.5 px-5 font-mono text-[var(--app-ink)] text-[12.5px] font-semibold">{calcHours(r.checkIn, r.checkOut) || (r.checkOut ? '-' : '–')}</td>
                     <td className="py-3.5 px-5">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border ${
                         r.status === 'present' ? 'bg-green-50 text-green-700 border-green-200' : 
@@ -306,7 +329,7 @@ function EmployeeAttendance() {
                     </div>
                     <div className="flex items-center gap-8">
                       <div className="font-mono text-[13px] text-[var(--app-muted)]">{r.checkIn} — {r.checkOut || '?'}</div>
-                      <div className="font-mono text-[14px] font-bold text-[var(--app-ink)] w-12 text-right">{r.hours || '-'}</div>
+                      <div className="font-mono text-[14px] font-bold text-[var(--app-ink)] w-12 text-right">{calcHours(r.checkIn, r.checkOut) || '-'}</div>
                     </div>
                   </div>
                 ))}
