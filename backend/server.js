@@ -148,13 +148,12 @@ app.post('/api/attendance/checkin', (req, res) => {
     const { empId } = req.body;
     const date = new Date().toISOString().split('T')[0];
     const checkIn = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    const id = `ATT-${Date.now()}`;
     db.run(
-        'INSERT INTO attendance (id, empId, date, checkIn, status) VALUES (?, ?, ?, ?, ?)',
-        [id, empId, date, checkIn, 'present'],
+        'INSERT INTO attendance (empId, date, checkIn, status) VALUES (?, ?, ?, ?)',
+        [empId, date, checkIn, 'present'],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, message: 'Checked in' });
+            res.json({ success: true, message: 'Checked in', id: this.lastID });
         }
     );
 });

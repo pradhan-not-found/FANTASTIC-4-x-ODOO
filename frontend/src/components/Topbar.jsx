@@ -7,6 +7,30 @@ export default function Topbar({ title, subtitle, children }) {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [checkInTime, setCheckInTime] = useState(null);
   const [elapsed, setElapsed] = useState('00:00:00');
+  const [attendanceId, setAttendanceId] = useState(null);
+  const user = JSON.parse(localStorage.getItem('hrms_user') || '{}');
+
+  useEffect(() => {
+    if (user.id) {
+       fetch(`http://localhost:3000/api/attendance/${user.id}`)
+         .then(res => res.json())
+         .then(data => {
+            const today = new Date().toISOString().split('T')[0];
+            const todayRecord = data.find(d => d.date === today && !d.checkOut);
+            if (todayRecord) {
+               setIsCheckedIn(true);
+               const [hours, minutes] = todayRecord.checkIn.split(':');
+               const d = new Date();
+               d.setHours(parseInt(hours, 10));
+               d.setMinutes(parseInt(minutes, 10));
+               d.setSeconds(0);
+               setCheckInTime(d);
+               setAttendanceId(todayRecord.id);
+            }
+         })
+         .catch(err => console.error("Error fetching attendance:", err));
+    }
+  }, [user.id]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -26,14 +50,37 @@ export default function Topbar({ title, subtitle, children }) {
   const dateStr = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-  const handleCheckInOut = () => {
+  const handleCheckInOut = async () => {
     if (isCheckedIn) {
+      if (attendanceId) {
+        try {
+          await fetch(`http://localhost:3000/api/attendance/checkout/${attendanceId}`, {
+            method: 'PUT'
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
       setIsCheckedIn(false);
       setCheckInTime(null);
       setElapsed('00:00:00');
+      setAttendanceId(null);
     } else {
-      setIsCheckedIn(true);
-      setCheckInTime(new Date());
+      try {
+        const res = await fetch(`http://localhost:3000/api/attendance/checkin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ empId: user.id })
+        });
+        const data = await res.json();
+        if (data.success) {
+            setIsCheckedIn(true);
+            setCheckInTime(new Date());
+            setAttendanceId(data.id);
+        }
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 

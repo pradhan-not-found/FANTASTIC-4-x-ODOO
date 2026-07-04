@@ -373,8 +373,8 @@ function EmployeeLeaves() {
 
       {modalOpen && (
         <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] backdrop-blur-md flex items-center justify-center z-[200] p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[24px] w-full max-w-[440px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between p-6 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.01)]">
+          <div className="bg-white rounded-[24px] w-full max-w-[440px] max-h-[90vh] flex flex-col shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between p-6 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.01)] shrink-0">
               <div>
                 <h2 className="text-[18px] font-bold tracking-tight text-[var(--app-ink)]">Request Leave</h2>
                 <p className="text-[13px] text-[var(--app-muted)] mt-0.5">Select dates and leave type.</p>
@@ -384,7 +384,7 @@ function EmployeeLeaves() {
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6">
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto no-scrollbar">
               <InteractiveCalendar from={from} to={to} setFrom={setFrom} setTo={setTo} />
 
               <div className="space-y-4 mb-6 mt-4 border-t border-[rgba(0,0,0,0.06)] pt-4">
