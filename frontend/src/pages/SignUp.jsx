@@ -140,51 +140,46 @@ export default function SignUp() {
       </div>
 
       {/* Graphic Side */}
-      <div className="hidden lg:flex flex-1 relative rounded-[32px] overflow-hidden bg-gradient-to-b from-[#1C1E2D] via-[#2A3445] to-[#71859D]">
-        {/* Deep inner shadow / vignette */}
-        <div className="absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.8)] pointer-events-none z-20"></div>
-        <div className="absolute inset-0 shadow-[inset_0_0_40px_rgba(0,0,0,0.5)] pointer-events-none z-20"></div>
+      <div className="hidden lg:flex flex-1 relative rounded-[28px] overflow-hidden bg-[#11131e] bg-gradient-to-br from-[#11131e] to-[#25324b]">
+        {/* Soft Vignette Overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(13,15,24,0.6)_100%)] z-10 pointer-events-none"></div>
+        
+        {/* Bottom subtle glow */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80%] h-[50%] bg-[#5d7c9f] rounded-full blur-[140px] opacity-30 z-0 pointer-events-none"></div>
 
-        {/* Wireframe Globe grid effect */}
-        <div className="absolute bottom-0 left-0 w-full h-[60%] flex items-end justify-center overflow-hidden opacity-30 z-0">
-          <svg viewBox="0 0 800 400" className="w-[120%] h-auto min-w-[800px] mb-[-10%] translate-y-[20%]">
-            <g stroke="#ffffff" strokeWidth="1.5" fill="none" opacity="0.8">
-              {/* Horizontal curves */}
-              <path d="M-100,200 Q400,0 900,200" />
-              <path d="M0,250 Q400,100 800,250" />
-              <path d="M100,300 Q400,200 700,300" />
-              <path d="M200,350 Q400,300 600,350" />
-              <path d="M300,400 Q400,380 500,400" />
-              
-              {/* Vertical curves */}
-              <path d="M400,-100 Q400,200 400,500" />
-              <path d="M400,-100 Q300,200 200,500" />
-              <path d="M400,-100 Q500,200 600,500" />
-              <path d="M400,-100 Q200,200 0,500" />
-              <path d="M400,-100 Q600,200 800,500" />
-              <path d="M400,-100 Q50,200 -200,500" />
-              <path d="M400,-100 Q750,200 1000,500" />
+        {/* Minimal Globe Grid */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[140%] min-w-[900px] flex justify-center opacity-[0.25] mix-blend-screen pointer-events-none z-0 translate-y-[35%]">
+          <svg viewBox="0 0 800 400" className="w-full h-auto" stroke="white" strokeWidth="0.8" fill="none">
+            <g opacity="0.8">
+              {/* Horizontal Rings */}
+              <ellipse cx="400" cy="400" rx="380" ry="70" />
+              <ellipse cx="400" cy="400" rx="380" ry="140" />
+              <ellipse cx="400" cy="400" rx="380" ry="210" />
+              <ellipse cx="400" cy="400" rx="380" ry="280" />
+              {/* Vertical Arcs */}
+              <path d="M20,400 A380,380 0 0,1 780,400" />
+              <path d="M120,400 A280,380 0 0,1 680,400" />
+              <path d="M220,400 A180,380 0 0,1 580,400" />
+              <path d="M320,400 A80,380 0 0,1 480,400" />
+              <line x1="400" y1="20" x2="400" y2="400" />
             </g>
           </svg>
         </div>
 
-        {/* Glow effect in the center of the grid */}
-        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#93b3dc] rounded-[100%] blur-[120px] opacity-20 z-0"></div>
-
         {/* Content */}
-        <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-12 text-center animate-in fade-in duration-1000 delay-300 fill-mode-both">
-          <h1 className="text-[44px] leading-[1.1] font-medium text-white mb-20 tracking-tight text-balance max-w-[600px]">
-            Join Workplace and Build<br/>Your Dream Team
+        <div className="relative z-20 w-full h-full flex flex-col items-center justify-center p-12 text-center">
+          <h1 className="text-[40px] md:text-[46px] leading-[1.15] tracking-tight font-medium text-white mb-[72px] text-balance max-w-[550px]" style={{ fontFamily: 'Matter, sans-serif' }}>
+            Build the Future of Your Team<br/>with Workplace
           </h1>
           
           <div className="flex flex-col items-center">
-            {/* Star Icon */}
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg" className="mb-10 animate-pulse">
-              <path d="M12 0L13.8 8.2L22 10L13.8 11.8L12 20L10.2 11.8L2 10L10.2 8.2L12 0Z" />
+            {/* Elegant 4-point Star */}
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-[64px] animate-pulse">
+              <path d="M12 0C12 6.62742 6.62742 12 0 12C6.62742 12 12 17.3726 12 24C12 17.3726 17.3726 12 24 12C17.3726 12 12 6.62742 12 0Z" fill="white" fillOpacity="0.95"/>
             </svg>
 
-            {/* Glass button */}
-            <Link to="/" className="px-8 py-3 rounded-full text-[15px] font-medium text-white bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.2)] hover:bg-white/20 transition-all">
+            {/* Premium Glass Button */}
+            <Link to="/" className="px-7 py-2.5 rounded-full text-[14.5px] font-medium text-white/90 bg-white/[0.04] backdrop-blur-xl border border-white/[0.12] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.3)] hover:bg-white/[0.08] hover:text-white transition-all duration-300">
               Sign In
             </Link>
           </div>
