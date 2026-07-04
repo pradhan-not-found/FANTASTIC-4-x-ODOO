@@ -8,13 +8,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
         console.error('Error connecting to the SQLite database:', err.message);
     } else {
         console.log('Connected to the SQLite database.');
-        
+
         // Initialize Tables
         db.serialize(() => {
             db.run(`CREATE TABLE IF NOT EXISTS employees (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
                 email TEXT NOT NULL UNIQUE,
+                password TEXT,
+                role TEXT,
                 department TEXT,
                 position TEXT,
                 status TEXT,

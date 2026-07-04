@@ -8,6 +8,42 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
+// AUTH
+app.post('/api/auth/signup', (req, res) => {
+    const { first, last, email, password, role } = req.body;
+    if (!first || !last || !email || !password) return res.status(400).json({ error: 'Missing required fields' });
+    
+    // Auto-generate Login ID
+    const first2First = first.substring(0, 2).toUpperCase().padEnd(2, 'X');
+    const first2Last = last.substring(0, 2).toUpperCase().padEnd(2, 'X');
+    const currentYear = new Date().getFullYear();
+    const companyInitials = "OI";
+    
+    db.get('SELECT COUNT(*) as count FROM employees WHERE id LIKE ?', [`%${currentYear}%`], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const count = row.count || 0;
+        const serialNumber = (count + 1).toString().padStart(4, '0');
+        const generatedId = `${companyInitials}${first2First}${first2Last}${currentYear}${serialNumber}`;
+        const name = `${first} ${last}`;
+        const joinDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        
+        db.run('INSERT INTO employees (id, name, email, password, role, status, joinDate) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+        [generatedId, name, email, password, role || 'employee', 'active', joinDate], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, id: generatedId });
+        });
+    });
+});
+
+app.post('/api/auth/login', (req, res) => {
+    const { loginIdOrEmail, password } = req.body;
+    db.get('SELECT * FROM employees WHERE (email = ? OR id = ?) AND password = ?', [loginIdOrEmail, loginIdOrEmail, password], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (!row) return res.status(401).json({ error: 'Invalid credentials' });
+        res.json({ success: true, user: { id: row.id, name: row.name, email: row.email, role: row.role, avatar: row.avatar } });
+    });
+});
+
 // EMPLOYEES
 app.get('/api/employees', (req, res) => {
     db.all('SELECT * FROM employees', [], (err, rows) => {
