@@ -1,4 +1,3 @@
-import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { EMPLOYEES, ATTENDANCE_TODAY, LEAVE_REQUESTS, DEPT_STATS } from '../data/mockData';
 import { 
@@ -215,14 +214,11 @@ export default function Dashboard() {
   const role = localStorage.getItem('hrms_role') || 'admin';
 
   return (
-    <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
-      <Sidebar role={role} />
-      <div className="flex-1 ml-64 flex flex-col min-h-screen apple-inset">
-        <Topbar title="Dashboard" subtitle={role === 'admin' ? 'Admin Overview' : 'Employee Portal'} />
-        <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-          {role === 'admin' ? <AdminDashboard /> : <EmployeeDashboard />}
-        </div>
+    <>
+      <Topbar title="Dashboard" subtitle={role === 'admin' ? 'Admin Overview' : 'Employee Portal'} />
+      <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+        {role === 'admin' ? <AdminDashboard /> : <EmployeeDashboard />}
       </div>
-    </div>
+    </>
   );
 }

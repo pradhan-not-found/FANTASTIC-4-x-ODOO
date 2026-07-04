@@ -65,6 +65,26 @@ export const PAYROLL = [
 export const MY_PROFILE = {
   ...CURRENT_USER,
   location: 'Mumbai, India',
+  manager: 'Riya Sharma',
+  company: 'Fantastic 4',
+  about: 'I am a passionate software engineer focused on building scalable web applications. With over 4 years of experience, I love tackling complex problems and collaborating with cross-functional teams to deliver high-quality products.',
+  loveAboutJob: 'The culture of continuous learning and the freedom to experiment with new technologies.',
+  interests: 'Photography, Open-Source Contributing, Trekking.',
+  skills: ['React', 'Node.js', 'Tailwind CSS', 'System Design', 'PostgreSQL'],
+  certifications: ['AWS Certified Developer - Associate', 'Meta Front-End Developer Professional Certificate'],
+  dob: '1998-05-15',
+  residingAddress: '101, Sea View Apartments, Bandra West, Mumbai - 400050',
+  nationality: 'Indian',
+  personalEmail: 'souradeep.personal@gmail.com',
+  gender: 'Male',
+  maritalStatus: 'Single',
+  bankDetails: {
+    accountNo: '321456987012',
+    bankName: 'HDFC Bank',
+    ifsc: 'HDFC0001234',
+    pan: 'ABCDE1234F',
+    uan: '100123456789'
+  }
 };
 
 export const MY_PAYROLL = {

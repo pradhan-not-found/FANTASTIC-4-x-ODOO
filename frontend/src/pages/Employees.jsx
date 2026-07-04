@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { EMPLOYEES } from '../data/mockData';
-import { X, UserPlus, Mail, CheckCircle2, User } from 'lucide-react';
+import { X, UserPlus, Mail, CheckCircle2, User, Plane, Circle } from 'lucide-react';
 
 export default function Employees() {
   const role = localStorage.getItem('hrms_role') || 'admin';
@@ -30,12 +29,10 @@ export default function Employees() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
-      <Sidebar role={role} />
-      <div className="flex-1 ml-64 flex flex-col min-h-screen apple-inset">
-        <Topbar title="Employees" subtitle="Manage your organization's workforce" />
-        
-        <div className="flex-1 overflow-y-auto p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 no-scrollbar">
+    <>
+      <Topbar title="Employees" subtitle="Manage your organization's workforce" />
+      
+      <div className="flex-1 overflow-y-auto p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 no-scrollbar">
           
           <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
             <div>
@@ -55,84 +52,74 @@ export default function Employees() {
             </div>
           </div>
 
-          <div className="liquid-card-shell rounded-[18px] overflow-hidden card-elevate">
-            <div className="p-4 border-b border-[rgba(0,0,0,0.08)] bg-[var(--app-soft)] flex justify-between items-center gap-4 flex-wrap">
-              <div className="flex items-center gap-3">
-                <input type="text" placeholder="Search by name, ID, role..." className="px-3 py-1.5 border border-[rgba(0,0,0,0.12)] rounded-md text-[12.5px] bg-white w-[250px] outline-none focus:border-blue-500 transition-all placeholder:text-[var(--app-muted)]" />
-                <select className="px-3 py-1.5 border border-[rgba(0,0,0,0.12)] rounded-md text-[12.5px] bg-white outline-none cursor-pointer">
-                  <option>All Departments</option>
-                  <option>Engineering</option>
-                  <option>Design</option>
-                  <option>Product</option>
-                  <option>HR</option>
-                </select>
-              </div>
-              <div className="text-[12px] text-[var(--app-muted)] font-medium">
-                Showing {employeesList.length} results
-              </div>
+          <div className="mb-6 flex justify-between items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <input type="text" placeholder="Search by name, ID, role..." className="px-4 py-2 border border-[rgba(0,0,0,0.12)] rounded-xl text-[13px] bg-white w-[280px] outline-none focus:border-blue-500 transition-all placeholder:text-[var(--app-muted)] shadow-sm" />
+              <select className="px-4 py-2 border border-[rgba(0,0,0,0.12)] rounded-xl text-[13px] bg-white outline-none cursor-pointer shadow-sm text-[var(--app-ink)] font-medium">
+                <option>All Departments</option>
+                <option>Engineering</option>
+                <option>Design</option>
+                <option>Product</option>
+                <option>HR</option>
+              </select>
             </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13.5px] text-left">
-                <thead className="bg-[rgba(0,0,0,0.02)] border-b border-[rgba(0,0,0,0.06)]">
-                  <tr>
-                    <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Employee</th>
-                    <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">ID</th>
-                    <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Role & Department</th>
-                    <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Join Date</th>
-                    <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Status</th>
-                    <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-                  {employeesList.map(e => (
-                    <tr key={e.id} className="hover:bg-[rgba(0,0,0,0.01)] transition-colors group">
-                      <td className="py-3.5 px-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center font-bold text-[11px] text-blue-700 shrink-0 shadow-sm">
-                            {e.name.split(' ').map(n=>n[0]).join('')}
-                          </div>
-                          <div>
-                            <div className="font-bold text-[13.5px] text-[var(--app-ink)]">{e.name}</div>
-                            <div className="text-[11.5px] text-[var(--app-muted)]">{e.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-[12.5px]">{e.id}</td>
-                      <td className="py-3.5 px-5">
-                        <div className="font-semibold text-[13.5px] text-[var(--app-ink)]">{e.role}</div>
-                        <div className="text-[11.5px] text-[var(--app-muted)]">{e.department}</div>
-                      </td>
-                      <td className="py-3.5 px-5 text-[12.5px] text-[var(--app-muted)] font-medium">{e.joinDate}</td>
-                      <td className="py-3.5 px-5">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border bg-green-50 text-green-700 border-green-200">
-                          Active
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-5 text-right">
-                        <button className="text-[var(--app-muted)] hover:text-blue-600 font-semibold text-[13px] opacity-0 group-hover:opacity-100 transition-opacity">
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            <div className="p-4 border-t border-[rgba(0,0,0,0.06)] bg-[var(--app-soft)] flex justify-between items-center text-[12.5px]">
-              <button className="px-3 py-1 rounded-md text-[var(--app-muted)] hover:bg-[rgba(0,0,0,0.04)] transition-colors" disabled>Previous</button>
-              <div className="flex items-center gap-1">
-                <button className="w-7 h-7 rounded-md bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] font-bold flex items-center justify-center shadow-sm">1</button>
-                <button className="w-7 h-7 rounded-md text-[var(--app-muted)] hover:bg-[rgba(0,0,0,0.04)] font-medium flex items-center justify-center transition-colors">2</button>
-                <button className="w-7 h-7 rounded-md text-[var(--app-muted)] hover:bg-[rgba(0,0,0,0.04)] font-medium flex items-center justify-center transition-colors">3</button>
-              </div>
-              <button className="px-3 py-1 rounded-md text-[var(--app-ink)] hover:bg-[rgba(0,0,0,0.04)] font-medium transition-colors">Next</button>
+            <div className="text-[13px] text-[var(--app-muted)] font-medium bg-[var(--app-soft)] px-3 py-1.5 rounded-lg border border-[rgba(0,0,0,0.06)]">
+              Showing {employeesList.length} results
             </div>
           </div>
           
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {employeesList.map(e => {
+              // Determine visual status based on mockup logic
+              const isOnLeave = e.status === 'on-leave';
+              const isAbsent = e.status === 'absent'; // Simulate absent
+              
+              let StatusIcon = Circle;
+              let statusColor = "bg-green-500";
+              
+              if (isOnLeave) {
+                 StatusIcon = Plane;
+                 statusColor = "bg-blue-500 text-white";
+              } else if (isAbsent) {
+                 statusColor = "bg-amber-500";
+              }
+              
+              return (
+                <div key={e.id} className="liquid-card-shell rounded-[18px] p-6 card-elevate relative group hover:-translate-y-1 transition-transform duration-300 flex flex-col items-center text-center cursor-pointer">
+                  
+                  {/* Status Indicator (Top Right) */}
+                  <div className="absolute top-4 right-4" title={isOnLeave ? 'On Leave' : isAbsent ? 'Absent' : 'Present'}>
+                    {isOnLeave ? (
+                       <div className={`w-7 h-7 rounded-full flex items-center justify-center ${statusColor} shadow-sm`}>
+                         <StatusIcon className="w-4 h-4" />
+                       </div>
+                    ) : (
+                       <div className={`w-3.5 h-3.5 rounded-full ${statusColor} border-2 border-white shadow-sm ring-1 ring-[rgba(0,0,0,0.05)]`}></div>
+                    )}
+                  </div>
+
+                  {/* Avatar */}
+                  <div className="w-20 h-20 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center font-bold text-[24px] text-blue-700 mb-4 shadow-sm relative overflow-hidden">
+                     {e.avatar || e.name.split(' ').map(n=>n[0]).join('')}
+                  </div>
+                  
+                  {/* Details */}
+                  <h3 className="font-bold text-[16px] text-[var(--app-ink)] tracking-tight mb-1">{e.name}</h3>
+                  <div className="text-[13px] font-medium text-[var(--app-muted)] mb-0.5">{e.role}</div>
+                  <div className="text-[11.5px] font-bold tracking-widest uppercase text-blue-600 mb-4">{e.department}</div>
+                  
+                  <div className="w-full h-[1px] bg-[rgba(0,0,0,0.06)] my-4"></div>
+                  
+                  <div className="w-full flex justify-between items-center text-[12px]">
+                    <span className="font-mono text-[var(--app-muted)]">{e.id}</span>
+                    <button className="text-blue-600 font-bold hover:underline opacity-0 group-hover:opacity-100 transition-opacity">View Profile</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
         </div>
-      </div>
 
       {/* Professional Add Employee Modal */}
       {isModalOpen && (
@@ -222,6 +209,6 @@ export default function Employees() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

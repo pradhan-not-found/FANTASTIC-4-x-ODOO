@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { LEAVE_REQUESTS, EMPLOYEES } from '../data/mockData';
 import { X } from 'lucide-react';
@@ -176,43 +175,72 @@ function EmployeeLeaves() {
         ))}
       </div>
 
-      <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
-        <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">My Requests</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-[13.5px] text-left">
-            <thead className="bg-[rgba(0,0,0,0.02)] border-b border-[rgba(0,0,0,0.06)]">
-              <tr>
-                <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Type</th>
-                <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Duration</th>
-                <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Reason</th>
-                <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-              {requests.map(l => (
-                <tr key={l.id}>
-                  <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{l.type}</td>
-                  <td className="py-3.5 px-4">
-                    <div className="font-mono text-[var(--app-ink)] text-[12.5px]">{l.from} to {l.to}</div>
-                    <div className="text-[11.5px] text-[var(--app-muted)]">{l.days} day{l.days > 1 ? 's' : ''}</div>
-                  </td>
-                  <td className="py-3.5 px-4 text-[var(--app-muted)] text-[12.5px] max-w-[200px] truncate">{l.reason}</td>
-                  <td className="py-3.5 px-4">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border ${
-                      l.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 
-                      l.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
-                      'bg-red-50 text-red-700 border-red-200'
-                    }`}>
-                      {l.status}
-                    </span>
-                  </td>
-                </tr>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <div className="liquid-card-shell rounded-[18px] p-6 card-elevate h-full">
+            <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">My Requests</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13.5px] text-left">
+                <thead className="bg-[rgba(0,0,0,0.02)] border-b border-[rgba(0,0,0,0.06)]">
+                  <tr>
+                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Type</th>
+                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Duration</th>
+                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Reason</th>
+                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
+                  {requests.map(l => (
+                    <tr key={l.id}>
+                      <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{l.type}</td>
+                      <td className="py-3.5 px-4">
+                        <div className="font-mono text-[var(--app-ink)] text-[12.5px]">{l.from} to {l.to}</div>
+                        <div className="text-[11.5px] text-[var(--app-muted)]">{l.days} day{l.days > 1 ? 's' : ''}</div>
+                      </td>
+                      <td className="py-3.5 px-4 text-[var(--app-muted)] text-[12.5px] max-w-[200px] truncate">{l.reason}</td>
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border ${
+                          l.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 
+                          l.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
+                          'bg-red-50 text-red-700 border-red-200'
+                        }`}>
+                          {l.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {requests.length === 0 && (
+                    <tr><td colSpan="4" className="text-center py-6 text-[var(--app-muted)] text-[13.5px]">No requests found.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <div className="liquid-card-shell rounded-[18px] p-6 card-elevate h-full">
+            <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">Upcoming Holidays</h2>
+            <div className="flex flex-col gap-4">
+              {[
+                { name: 'Independence Day', date: 'Aug 15, 2026', day: 'Saturday' },
+                { name: 'Ganesh Chaturthi', date: 'Sep 14, 2026', day: 'Monday' },
+                { name: 'Gandhi Jayanti', date: 'Oct 02, 2026', day: 'Friday' },
+                { name: 'Diwali', date: 'Nov 08, 2026', day: 'Sunday' }
+              ].map((h, i) => (
+                <div key={i} className="flex gap-4 items-center p-3 rounded-xl hover:bg-[rgba(0,0,0,0.02)] transition-colors border border-transparent hover:border-[rgba(0,0,0,0.05)]">
+                  <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-xl flex flex-col items-center justify-center text-blue-700 shrink-0 shadow-sm">
+                     <span className="text-[10px] font-bold uppercase">{h.date.split(' ')[0]}</span>
+                     <span className="text-[16px] font-black leading-none">{h.date.split(' ')[1].replace(',', '')}</span>
+                  </div>
+                  <div>
+                    <div className="font-bold text-[14px] text-[var(--app-ink)]">{h.name}</div>
+                    <div className="text-[12px] text-[var(--app-muted)]">{h.day}</div>
+                  </div>
+                </div>
               ))}
-              {requests.length === 0 && (
-                <tr><td colSpan="4" className="text-center py-6 text-[var(--app-muted)] text-[13.5px]">No requests found.</td></tr>
-              )}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -291,14 +319,11 @@ function EmployeeLeaves() {
 export default function Leaves() {
   const role = localStorage.getItem('hrms_role') || 'admin';
   return (
-    <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
-      <Sidebar role={role} />
-      <div className="flex-1 ml-64 flex flex-col min-h-screen apple-inset">
-        <Topbar title={role === 'admin' ? "Leave Approvals" : "Leave Requests"} />
-        <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-          {role === 'admin' ? <AdminLeaves /> : <EmployeeLeaves />}
-        </div>
+    <>
+      <Topbar title={role === 'admin' ? "Leave Approvals" : "Leave Requests"} />
+      <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+        {role === 'admin' ? <AdminLeaves /> : <EmployeeLeaves />}
       </div>
-    </div>
+    </>
   );
 }

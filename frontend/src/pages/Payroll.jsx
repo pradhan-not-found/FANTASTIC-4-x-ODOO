@@ -1,4 +1,3 @@
-import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { MY_PAYROLL, EMPLOYEES } from '../data/mockData';
 
@@ -159,14 +158,11 @@ function EmployeePayroll() {
 export default function Payroll() {
   const role = localStorage.getItem('hrms_role') || 'admin';
   return (
-    <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
-      <Sidebar role={role} />
-      <div className="flex-1 ml-64 flex flex-col min-h-screen apple-inset">
-        <Topbar title="Payroll" subtitle={role === 'admin' ? "Company Payroll" : "My Payslips"} />
-        <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-          {role === 'admin' ? <AdminPayroll /> : <EmployeePayroll />}
-        </div>
+    <>
+      <Topbar title="Payroll" subtitle={role === 'admin' ? "Company Payroll" : "My Payslips"} />
+      <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+        {role === 'admin' ? <AdminPayroll /> : <EmployeePayroll />}
       </div>
-    </div>
+    </>
   );
 }

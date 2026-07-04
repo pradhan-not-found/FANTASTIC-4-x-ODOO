@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { Bell, AlertCircle, Calendar, Info, Plus, ChevronRight, MessageSquareWarning } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -61,12 +60,10 @@ export default function NoticeBoard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
-      <Sidebar role={role} />
-      <div className="flex-1 ml-64 flex flex-col min-h-screen apple-inset">
-        <Topbar title="Notice Board" subtitle="Stay updated with the latest company announcements" />
-        
-        <div className="flex-1 overflow-y-auto p-8 max-w-[1000px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 no-scrollbar">
+    <>
+      <Topbar title="Notice Board" subtitle="Stay updated with the latest company announcements" />
+      
+      <div className="flex-1 overflow-y-auto p-8 max-w-[1000px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 no-scrollbar">
           
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div className="flex gap-2 bg-[var(--app-soft)] p-1.5 rounded-[14px] border border-[rgba(0,0,0,0.04)] shadow-sm">
@@ -168,7 +165,6 @@ export default function NoticeBoard() {
           </div>
 
         </div>
-      </div>
-    </div>
+    </>
   );
 }

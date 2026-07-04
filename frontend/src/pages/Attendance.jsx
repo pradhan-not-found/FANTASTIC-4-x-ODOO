@@ -1,6 +1,5 @@
-import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
-import { ATTENDANCE_TODAY, EMPLOYEES } from '../data/mockData';
+import { ATTENDANCE_TODAY, EMPLOYEES, MY_ATTENDANCE } from '../data/mockData';
 
 
 function AdminAttendance() {
@@ -123,23 +122,19 @@ function EmployeeAttendance() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-              {[
-                { date: 'Jul 4', in: '09:05 AM', out: '-', hrs: '-', stat: 'present' },
-                { date: 'Jul 3', in: '08:58 AM', out: '06:05 PM', hrs: '9h 7m', stat: 'present' },
-                { date: 'Jul 2', in: '09:12 AM', out: '05:30 PM', hrs: '8h 18m', stat: 'present' },
-                { date: 'Jul 1', in: '-', out: '-', hrs: '0h', stat: 'absent' },
-              ].map(r => (
-                <tr key={r.date} className="hover:bg-[rgba(0,0,0,0.01)] transition-colors">
-                  <td className="py-3.5 px-5 font-semibold text-[var(--app-ink)]">{r.date}</td>
-                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-[12.5px]">{r.in}</td>
-                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-[12.5px]">{r.out}</td>
-                  <td className="py-3.5 px-5 font-mono text-[var(--app-ink)] text-[12.5px] font-semibold">{r.hrs}</td>
+              {MY_ATTENDANCE.map((r, idx) => (
+                <tr key={idx} className="hover:bg-[rgba(0,0,0,0.01)] transition-colors">
+                  <td className="py-3.5 px-5 font-semibold text-[var(--app-ink)]">{r.date} ({r.day})</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-[12.5px]">{r.checkIn}</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-[12.5px]">{r.checkOut}</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-ink)] text-[12.5px] font-semibold">{r.hours}</td>
                   <td className="py-3.5 px-5">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border ${
-                      r.stat === 'present' ? 'bg-green-50 text-green-700 border-green-200' : 
+                      r.status === 'present' ? 'bg-green-50 text-green-700 border-green-200' : 
+                      r.status === 'half-day' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                       'bg-red-50 text-red-700 border-red-200'
                     }`}>
-                      {r.stat}
+                      {r.status}
                     </span>
                   </td>
                 </tr>
@@ -156,14 +151,11 @@ export default function Attendance() {
   const role = localStorage.getItem('hrms_role') || 'admin';
 
   return (
-    <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
-      <Sidebar role={role} />
-      <div className="flex-1 ml-64 flex flex-col min-h-screen apple-inset">
-        <Topbar title="Attendance" subtitle="Time and presence tracking" />
-        <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
-          {role === 'admin' ? <AdminAttendance /> : <EmployeeAttendance />}
-        </div>
+    <>
+      <Topbar title="Attendance" subtitle="Time and presence tracking" />
+      <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+        {role === 'admin' ? <AdminAttendance /> : <EmployeeAttendance />}
       </div>
-    </div>
+    </>
   );
 }
