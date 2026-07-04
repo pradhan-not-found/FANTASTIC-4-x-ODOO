@@ -23,7 +23,7 @@ export default function SignUp() {
   const handleNext = (e) => {
     e.preventDefault();
     setError('');
-    if (!form.empId || !form.first || !form.last || !form.email) { setError('All fields are required.'); return; }
+    if (!form.first || !form.last || !form.email) { setError('All fields are required.'); return; }
     setStep(2);
   };
 
@@ -35,50 +35,29 @@ export default function SignUp() {
     setLoading(true);
     
     try {
-      const response = await fetch('http://localhost:3000/api/employees', {
+      const response = await fetch('http://localhost:3000/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: form.empId,
-          name: `${form.first} ${form.last}`,
+          first: form.first,
+          last: form.last,
           email: form.email,
-          department: 'Unassigned',
-          position: form.role,
-          status: 'Active',
-          avatar: '',
-          joinDate: new Date().toISOString().split('T')[0],
-          salary: '$0',
-          phone: ''
+          password: form.password,
+          role: form.role
         })
       });
-      if (!response.ok) throw new Error('Failed to create account');
-      setStep(3);
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to sign up');
+      
+      alert(`Account created successfully!\n\nYour Login ID is: ${data.id}\nPlease save this ID to log in.`);
+      navigate('/');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
-
-  if (step === 3) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--app-canvas)] relative overflow-hidden">
-        <div className="w-full max-w-[440px] bg-white border border-[rgba(0,0,0,0.08)] rounded-[24px] p-10 relative z-10 shadow-[0_12px_48px_-12px_rgba(0,0,0,0.06)] animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">
-          <div className="w-16 h-16 bg-[var(--app-soft)] rounded-full flex items-center justify-center mx-auto mb-6">
-            <MailCheck className="w-8 h-8 text-[var(--app-ink)]" />
-          </div>
-          <h2 className="text-[22px] font-bold text-[var(--app-ink)] mb-2 tracking-tight">Verify your email</h2>
-          <p className="text-[14px] text-[var(--app-muted)] mb-8 leading-relaxed font-medium">
-            We've sent a verification link to <strong className="text-[var(--app-ink)]">{form.email}</strong>.<br/>
-            Please check your inbox and verify before signing in.
-          </p>
-          <button className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-[14px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all" onClick={() => navigate('/')}>
-            Go to Sign In <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex bg-white p-3 lg:p-5 gap-5">
@@ -118,10 +97,6 @@ export default function SignUp() {
                   <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">Last Name</label>
                   <input className="w-full px-4 py-3 bg-white border border-[rgba(0,0,0,0.15)] rounded-xl text-[var(--app-ink)] text-[15px] font-medium focus:border-blue-600 focus:ring-[4px] focus:ring-blue-600/10 transition-all outline-none placeholder:text-[var(--app-muted)] placeholder:font-normal" type="text" placeholder="Doe" value={form.last} onChange={e => setForm({ ...form, last: e.target.value })} required />
                 </div>
-              </div>
-              <div className="mb-5">
-                <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">Employee ID</label>
-                <input className="w-full px-4 py-3 bg-white border border-[rgba(0,0,0,0.15)] rounded-xl text-[var(--app-ink)] text-[15px] font-medium focus:border-blue-600 focus:ring-[4px] focus:ring-blue-600/10 transition-all outline-none placeholder:text-[var(--app-muted)] placeholder:font-normal" type="text" placeholder="EMP-001" value={form.empId || ''} onChange={e => setForm({ ...form, empId: e.target.value })} required />
               </div>
               <div className="mb-5">
                 <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">Email Address</label>

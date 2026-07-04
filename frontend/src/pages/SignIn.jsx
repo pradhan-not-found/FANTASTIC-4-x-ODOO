@@ -28,18 +28,27 @@ export default function SignIn() {
     setError('');
     if (!form.email || !form.password) { setError('Please fill in all fields.'); return; }
     setLoading(true);
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 900));
-    if (form.email === 'admin@f4.co' && form.password === 'admin123') {
-      localStorage.setItem('hrms_role', 'admin');
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          loginIdOrEmail: form.email,
+          password: form.password
+        })
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Invalid credentials');
+      
+      localStorage.setItem('hrms_role', data.user.role);
       navigate('/dashboard');
-    } else if (form.password === 'emp123') {
-      localStorage.setItem('hrms_role', 'employee');
-      navigate('/dashboard');
-    } else {
-      setError('Invalid credentials. Try admin@f4.co / admin123');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -63,11 +72,11 @@ export default function SignIn() {
 
           <form onSubmit={handleSubmit}>
             <div className="mb-5">
-              <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">Email Address</label>
+              <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">Login ID / Email</label>
               <input
                 className="w-full px-4 py-3 bg-white border border-[rgba(0,0,0,0.15)] rounded-xl text-[var(--app-ink)] text-[15px] font-medium focus:border-blue-600 focus:ring-[4px] focus:ring-blue-600/10 transition-all outline-none placeholder:text-[var(--app-muted)] placeholder:font-normal"
-                type="email"
-                placeholder="you@company.com"
+                type="text"
+                placeholder="OIJODO20220001 or you@company.com"
                 value={form.email}
                 onChange={e => setForm({ ...form, email: e.target.value })}
               />
