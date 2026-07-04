@@ -43,7 +43,8 @@ export default function SignIn() {
       if (!response.ok) throw new Error(data.error || 'Invalid credentials');
       
       localStorage.setItem('hrms_role', data.user.role);
-      navigate('/dashboard');
+      localStorage.setItem('hrms_user', JSON.stringify(data.user));
+      window.location.href = '/dashboard';
     } catch (err) {
       setError(err.message);
     } finally {

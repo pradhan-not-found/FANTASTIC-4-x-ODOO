@@ -51,10 +51,14 @@ export async function initData() {
     LEAVE_REQUESTS = await leaveRes.json();
     PAYROLL = await payRes.json();
 
-    MY_ATTENDANCE = ATTENDANCE_TODAY.filter(a => a.empId === 'EMP-001');
-    MY_LEAVES = LEAVE_REQUESTS.filter(l => l.empId === 'EMP-001');
+    const userString = localStorage.getItem('hrms_user');
+    const loggedInUser = userString ? JSON.parse(userString) : null;
+    const loggedInId = loggedInUser ? loggedInUser.id : 'EMP-001';
+
+    MY_ATTENDANCE = ATTENDANCE_TODAY.filter(a => a.empId === loggedInId);
+    MY_LEAVES = LEAVE_REQUESTS.filter(l => l.empId === loggedInId);
     
-    const myEmp = EMPLOYEES.find(e => e.id === 'EMP-001') || {};
+    const myEmp = EMPLOYEES.find(e => e.id === loggedInId) || {};
     MY_PROFILE = { 
       ...CURRENT_USER, 
       ...myEmp, 
@@ -74,7 +78,7 @@ export async function initData() {
       bankDetails: { accountNo: '321456987012', bankName: 'HDFC Bank', ifsc: 'HDFC0001234', pan: 'ABCDE1234F', uan: '100123456789'} 
     };
     
-    const myPay = PAYROLL.find(p => p.empId === 'EMP-001') || {};
+    const myPay = PAYROLL.find(p => p.empId === loggedInId) || {};
     MY_PAYROLL = { ...myPay, earnings: { basic: 40000, hra: 16000, special: 34300, total: 90300 }, deductions: { pf: 1800, pt: 200, tds: 0, total: 2000 } };
   } catch (error) {
     console.error("Failed to fetch data from backend", error);

@@ -14,8 +14,8 @@ export default function Employees() {
       const res = await fetch('http://localhost:3000/api/employees');
       if (res.ok) {
         const data = await res.json();
-        // Backend returns oldest first generally, or based on db. We can reverse it to show newest first.
-        setEmployeesList(data.reverse());
+        const nonAdmins = data.filter(emp => emp.role && emp.role.toLowerCase() !== 'admin');
+        setEmployeesList(nonAdmins.reverse());
       }
     } catch (err) {
       console.error('Failed to fetch employees:', err);
@@ -93,8 +93,8 @@ export default function Employees() {
           
           <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
             <div>
-              <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">Employee Directory</h1>
-              <p className="text-[13.5px] text-[var(--app-muted)]">{EMPLOYEES.length} active employees in the system.</p>
+              <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight mb-1">Employee Directory</h1>
+              <p className="text-[13.5px] text-[var(--app-muted)]">{employeesList.length} active employees in the system.</p>
             </div>
             <div className="flex gap-3">
               <button className="px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all">
