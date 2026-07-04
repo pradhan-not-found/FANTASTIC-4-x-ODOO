@@ -14,10 +14,12 @@ import {
 const NAV_EMPLOYEE = [
   { label: 'Main', items: [
     { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard'      },
-    { to: '/profile',    icon: User,            label: 'My Profile'     },
     { to: '/attendance', icon: Clock,           label: 'Attendance'     },
     { to: '/leaves',     icon: CalendarDays,    label: 'Leave Requests' },
     { to: '/payroll',    icon: Wallet,          label: 'Payroll'        },
+  ]},
+  { label: 'Account', items: [
+    { to: '/profile',    icon: User,            label: 'My Profile'     },
   ]},
 ];
 
