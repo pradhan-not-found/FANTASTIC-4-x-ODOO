@@ -1,12 +1,25 @@
-# 🚀 FANTASTIC-4 × ODOO — Human Resource Management System
-
 <div align="center">
+
+<img src="https://hackathon.odoo.com/web/image/website/1/logo/Hackathon?unique=7ce7628" alt="Odoo Hackathon" height="100"/>
+&nbsp;&nbsp;&nbsp;
+<span style="font-size: 2.5rem; font-weight: 900; vertical-align: middle; color: #333;">✕</span>
+&nbsp;&nbsp;&nbsp;
+<img src="fantastic4.png" alt="Fantastic 4" height="100"/>
+
+<br/>
+
+# FANTASTIC 4 × ODOO
+
+### Human Resource Management System
+
+<br/>
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-In%20Development-yellow.svg)
 ![Stack](https://img.shields.io/badge/stack-Odoo%20%7C%20React%20%7C%20Python-orange.svg)
+![Team](https://img.shields.io/badge/team-Fantastic%204-red.svg)
 
-**A modern, full-featured HRMS built on top of Odoo — by Team Fantastic 4**
+*A modern, full-featured HRMS built on top of Odoo — proudly presented at the Odoo Hackathon*
 
 </div>
 
