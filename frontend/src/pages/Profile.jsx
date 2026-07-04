@@ -141,7 +141,6 @@ export default function Profile() {
                     <span className="text-[15px] font-bold">∞</span>
                   </div>
                 </div>
-                </div>
               </div>
 
               {/* Bank Details */}
