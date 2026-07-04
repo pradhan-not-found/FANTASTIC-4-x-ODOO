@@ -26,7 +26,7 @@ export default function Employees() {
     fetchEmployees();
   }, []);
 
-  const handleAddEmployee = (e) => {
+  const handleAddEmployee = async (e) => {
     e.preventDefault();
     if (!newEmp.name || !newEmp.email || !newEmp.role || !newEmp.department) return;
     
