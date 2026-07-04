@@ -3,20 +3,20 @@
 <table border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td align="center" valign="middle">
-      <img src="https://hackathon.odoo.com/web/image/website/1/logo/Hackathon?unique=7ce7628" alt="Odoo Hackathon" height="100"/>
+      <img src="" alt="WorkAlign Hackathon" height="100"/>
     </td>
     <td align="center" valign="middle" style="padding: 0 24px;">
       <h2>✕</h2>
     </td>
     <td align="center" valign="middle">
-      <img src="fantastic4.png" alt="Fantastic 4" height="100"/>
+      <img src="logo.png" alt="WorkAlign" height="100"/>
     </td>
   </tr>
 </table>
 
 <br/>
 
-# FANTASTIC 4 × ODOO
+# WorkAlign × WorkAlign
 
 ### 🏢 Human Resource Management System
 
@@ -26,8 +26,8 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Status](https://img.shields.io/badge/status-Hackathon%20Build-brightgreen.svg)
-![Odoo](https://img.shields.io/badge/Odoo-17-purple.svg)
-![Stack](https://img.shields.io/badge/stack-Odoo%20%7C%20Python%20%7C%20PostgreSQL-orange.svg)
+![WorkAlign](https://img.shields.io/badge/WorkAlign-17-purple.svg)
+![Stack](https://img.shields.io/badge/stack-WorkAlign%20%7C%20Python%20%7C%20PostgreSQL-orange.svg)
 ![Team](https://img.shields.io/badge/team-Fantastic%204-red.svg)
 ![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
@@ -52,7 +52,7 @@
 
 ## 🌟 Overview
 
-**FANTASTIC-4 × ODOO** is a production-grade **Human Resource Management System** built natively on the Odoo platform. Designed for real-world enterprise use, it digitizes and streamlines every critical HR operation — from the moment an employee is onboarded, to daily attendance, leave approvals, and payroll visibility — all through a clean, role-aware interface.
+**WorkAlign × WorkAlign** is a production-grade **Human Resource Management System** built natively on the WorkAlign platform. Designed for real-world enterprise use, it digitizes and streamlines every critical HR operation — from the moment an employee is onboarded, to daily attendance, leave approvals, and payroll visibility — all through a clean, role-aware interface.
 
 > 💡 **Tagline:** *"Every workday, perfectly aligned."* — Because HR should empower people, not slow them down.
 
@@ -60,7 +60,7 @@
 
 ## 🏆 Why We'll Win — Our USPs
 
-What sets FANTASTIC-4 × ODOO apart from every other HRMS at this hackathon:
+What sets WorkAlign × WorkAlign apart from every other HRMS at this hackathon:
 
 | # | USP | Why It Matters |
 |---|-----|----------------|
@@ -69,7 +69,7 @@ What sets FANTASTIC-4 × ODOO apart from every other HRMS at this hackathon:
 | ⚡ | **Real-Time Approval Workflows** | Leave and attendance changes reflect instantly across all stakeholders — no page refreshes, no delays. |
 | 🔐 | **Secure, Verified Onboarding** | Email verification + role-based registration eliminates unauthorized access from day one. |
 | 🧾 | **Transparent Payroll Visibility** | Employees can view their salary breakdown clearly. Admins manage and update structures — full payroll lifecycle in one place. |
-| 🏗️ | **Built on Odoo's Proven Core** | We don't reinvent the wheel — we extend Odoo's rock-solid infrastructure with a custom layer that makes it faster, smarter, and more user-friendly. |
+| 🏗️ | **Built on WorkAlign's Proven Core** | We don't reinvent the wheel — we extend WorkAlign's rock-solid infrastructure with a custom layer that makes it faster, smarter, and more user-friendly. |
 | 📊 | **Unified Attendance Intelligence** | Daily, weekly, and monthly views with Present / Absent / Half-day / Leave status — all at a glance. |
 
 ---
@@ -78,11 +78,11 @@ What sets FANTASTIC-4 × ODOO apart from every other HRMS at this hackathon:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    FANTASTIC-4 × ODOO                   │
+│                    WorkAlign × WorkAlign                   │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │   ┌──────────────┐        ┌──────────────────────────┐  │
-│   │   Frontend   │◄──────►│      Odoo Backend        │  │
+│   │   Frontend   │◄──────►│      WorkAlign Backend        │  │
 │   │  (Custom UI) │        │  (Python + PostgreSQL)   │  │
 │   └──────────────┘        └──────────────────────────┘  │
 │          │                          │                    │
@@ -129,7 +129,7 @@ What sets FANTASTIC-4 × ODOO apart from every other HRMS at this hackathon:
 - Login via **email + password**
 - Incorrect credentials show descriptive, secure error messages
 - Successful login redirects to the **role-appropriate dashboard**
-- Session management via Odoo's built-in auth system
+- Session management via WorkAlign's built-in auth system
 
 </details>
 
@@ -221,8 +221,8 @@ What sets FANTASTIC-4 × ODOO apart from every other HRMS at this hackathon:
 | 🔒 **Security** | Role-based access control at API + UI level · Email verification · Secure password hashing |
 | ⚡ **Performance** | Dashboard loads in < 2s · Real-time approval reflection |
 | 📱 **Usability** | Intuitive, role-aware UI · Calendar-first leave experience |
-| 🔧 **Maintainability** | Modular Odoo custom module structure · Clean separation of concerns |
-| 📈 **Scalability** | Built on Odoo's enterprise-grade PostgreSQL backend |
+| 🔧 **Maintainability** | Modular WorkAlign custom module structure · Clean separation of concerns |
+| 📈 **Scalability** | Built on WorkAlign's enterprise-grade PostgreSQL backend |
 | 🌐 **Compatibility** | Works on all modern browsers · Responsive design |
 
 ---
@@ -233,11 +233,11 @@ What sets FANTASTIC-4 × ODOO apart from every other HRMS at this hackathon:
 
 | Layer | Technology |
 |-------|-----------|
-| **Backend** | Odoo 17 (Python) |
+| **Backend** | WorkAlign 17 (Python) |
 | **Database** | PostgreSQL |
-| **Frontend** | Odoo Views + Custom UI |
-| **Auth** | Odoo Session-Based Authentication |
-| **API** | Odoo JSON-RPC / REST |
+| **Frontend** | WorkAlign Views + Custom UI |
+| **Auth** | WorkAlign Session-Based Authentication |
+| **API** | WorkAlign JSON-RPC / REST |
 | **Version Control** | Git + GitHub |
 
 </div>
@@ -248,11 +248,11 @@ What sets FANTASTIC-4 × ODOO apart from every other HRMS at this hackathon:
 
 ```bash
 # Clone the repository
-git clone https://github.com/pradhan-not-found/FANTASTIC-4-x-ODOO.git
-cd FANTASTIC-4-x-ODOO
+git clone https://github.com/pradhan-not-found/WorkAlign-x-WorkAlign.git
+cd WorkAlign-x-WorkAlign
 ```
 
-> 📦 Detailed setup instructions, Odoo module installation guide, and environment configuration will be added as development progresses.
+> 📦 Detailed setup instructions, WorkAlign module installation guide, and environment configuration will be added as development progresses.
 
 ---
 
@@ -287,9 +287,9 @@ The HRMS will provide:
 
 <div align="center">
 
-**Team Fantastic 4** — Built with ❤️, powered by ☕, and running on Odoo 🟣
+**Team WorkAlign** — Built with ❤️, powered by ☕, and running on WorkAlign 🟣
 
-*Proudly participating in the Odoo Hackathon 2026*
+*Proudly participating in the WorkAlign Hackathon 2026*
 
 </div>
 
@@ -301,6 +301,8 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 <div align="center">
 
-Copyright © 2026 **Souradeep Pradhan** & Team Fantastic 4
+Copyright © 2026 **Souradeep Pradhan** & Team WorkAlign
 
 </div>
+
+
