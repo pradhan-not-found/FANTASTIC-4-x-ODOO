@@ -14,10 +14,11 @@ function AdminDashboard() {
   return (
     <div className="flex-1 p-8 max-w-[1300px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
-          <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, Souradeep</h1>
-        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
+            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, Souradeep</h1>
+          </div>
           <p className="text-[13.5px] text-[var(--app-muted)]">Here's what's happening across your organization today.</p>
         </div>
         <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
@@ -152,9 +153,12 @@ function EmployeeDashboard() {
   return (
     <div className="flex-1 p-8 max-w-[1300px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
-          <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, Souradeep</h1>
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
+            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, Souradeep</h1>
+          </div>
+          <p className="text-[13.5px] text-[var(--app-muted)]">You have 2 notifications today.</p>
         </div>
         <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
           Request Leave
