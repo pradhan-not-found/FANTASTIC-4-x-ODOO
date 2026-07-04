@@ -1,7 +1,91 @@
 import { useState } from 'react';
 import Topbar from '../components/Topbar';
-import { LEAVE_REQUESTS, EMPLOYEES } from '../data/mockData';
-import { X } from 'lucide-react';
+import { LEAVE_REQUESTS, EMPLOYEES, CALENDAR_STATUS } from '../data/mockData';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+
+function InteractiveCalendar({ from, to, setFrom, setTo }) {
+  const daysInMonth = 31;
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  const handleDateClick = (day) => {
+    // Basic date formatting for UI purposes (July 2026)
+    const dateStr = `2026-07-${String(day).padStart(2, '0')}`;
+    
+    if (!from || (from && to)) {
+      setFrom(dateStr);
+      setTo('');
+    } else {
+      const fromDate = new Date(from);
+      const clickedDate = new Date(dateStr);
+      if (clickedDate >= fromDate) {
+        setTo(dateStr);
+      } else {
+        setFrom(dateStr);
+        setTo('');
+      }
+    }
+  };
+
+  const isSelected = (day) => {
+    const dateStr = `2026-07-${String(day).padStart(2, '0')}`;
+    if (dateStr === from || dateStr === to) return true;
+    if (from && to) {
+      const d = new Date(dateStr);
+      return d > new Date(from) && d < new Date(to);
+    }
+    return false;
+  };
+
+  return (
+    <div className="bg-white border border-[rgba(0,0,0,0.12)] rounded-xl p-4 mb-4 select-none">
+      <div className="flex items-center justify-between mb-4 px-2">
+        <button type="button" className="p-1 hover:bg-[rgba(0,0,0,0.04)] rounded-md transition-colors"><ChevronLeft className="w-4 h-4 text-[var(--app-muted)]" /></button>
+        <div className="text-[13.5px] font-bold text-[var(--app-ink)]">July 2026</div>
+        <button type="button" className="p-1 hover:bg-[rgba(0,0,0,0.04)] rounded-md transition-colors"><ChevronRight className="w-4 h-4 text-[var(--app-muted)]" /></button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center mb-2">
+        {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
+          <div key={d} className="text-[10px] font-bold text-[var(--app-muted)] uppercase">{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center">
+        {/* Offset for Wed start of July 2026 */}
+        <div className="p-2"></div><div className="p-2"></div><div className="p-2"></div>
+        {days.map(day => {
+          const status = CALENDAR_STATUS[day];
+          const selected = isSelected(day);
+          const isEndpoint = `2026-07-${String(day).padStart(2, '0')}` === from || `2026-07-${String(day).padStart(2, '0')}` === to;
+          
+          return (
+            <div 
+              key={day} 
+              onClick={() => handleDateClick(day)}
+              className={`relative cursor-pointer h-9 flex flex-col items-center justify-center rounded-lg transition-all text-[13px] font-medium ${
+                selected 
+                  ? (isEndpoint ? 'bg-blue-600 text-white shadow-md' : 'bg-blue-50 text-blue-800') 
+                  : 'text-[var(--app-ink)] hover:bg-[rgba(0,0,0,0.04)]'
+              }`}
+            >
+              {day}
+              {status && !selected && (
+                <div className={`absolute bottom-1 w-1 h-1 rounded-full ${
+                  status === 'present' ? 'bg-green-500' :
+                  status === 'absent' ? 'bg-red-500' :
+                  status === 'half' ? 'bg-amber-500' : 'bg-blue-400'
+                }`}></div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)] px-2 justify-center">
+         <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500"></div><span className="text-[10px] text-[var(--app-muted)] font-semibold uppercase">Present</span></div>
+         <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div><span className="text-[10px] text-[var(--app-muted)] font-semibold uppercase">Absent</span></div>
+         <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div><span className="text-[10px] text-[var(--app-muted)] font-semibold uppercase">Leave</span></div>
+      </div>
+    </div>
+  );
+}
 
 
 function AdminLeaves() {
@@ -270,27 +354,16 @@ function EmployeeLeaves() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">From Date</label>
-                  <input 
-                    type="date" 
-                    required
-                    value={from}
-                    onChange={(e) => setFrom(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all bg-white" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">To Date</label>
-                  <input 
-                    type="date" 
-                    required
-                    value={to}
-                    onChange={(e) => setTo(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all bg-white" 
-                  />
-                </div>
+              <div className="mb-4">
+                <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">Select Date Range</label>
+                <InteractiveCalendar from={from} to={to} setFrom={setFrom} setTo={setTo} />
+                
+                {from && (
+                  <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-blue-50 text-blue-700 text-[12.5px] font-semibold rounded-lg border border-blue-100">
+                    <span>{from}</span>
+                    {to && <span>→ {to}</span>}
+                  </div>
+                )}
               </div>
 
               <div className="mb-6">

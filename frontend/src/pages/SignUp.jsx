@@ -90,12 +90,16 @@ export default function SignUp() {
               <div className="grid grid-cols-2 gap-4 mb-5">
                 <div>
                   <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">First Name</label>
-                  <input className="w-full px-4 py-3 bg-white border border-[rgba(0,0,0,0.15)] rounded-xl text-[var(--app-ink)] text-[15px] font-medium focus:border-blue-600 focus:ring-[4px] focus:ring-blue-600/10 transition-all outline-none placeholder:text-[var(--app-muted)] placeholder:font-normal" type="text" placeholder="John" value={form.first} onChange={e => setForm({ ...form, first: e.target.value })} />
+                  <input className="w-full px-4 py-3 bg-white border border-[rgba(0,0,0,0.15)] rounded-xl text-[var(--app-ink)] text-[15px] font-medium focus:border-blue-600 focus:ring-[4px] focus:ring-blue-600/10 transition-all outline-none placeholder:text-[var(--app-muted)] placeholder:font-normal" type="text" placeholder="John" value={form.first} onChange={e => setForm({ ...form, first: e.target.value })} required />
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">Last Name</label>
-                  <input className="w-full px-4 py-3 bg-white border border-[rgba(0,0,0,0.15)] rounded-xl text-[var(--app-ink)] text-[15px] font-medium focus:border-blue-600 focus:ring-[4px] focus:ring-blue-600/10 transition-all outline-none placeholder:text-[var(--app-muted)] placeholder:font-normal" type="text" placeholder="Doe" value={form.last} onChange={e => setForm({ ...form, last: e.target.value })} />
+                  <input className="w-full px-4 py-3 bg-white border border-[rgba(0,0,0,0.15)] rounded-xl text-[var(--app-ink)] text-[15px] font-medium focus:border-blue-600 focus:ring-[4px] focus:ring-blue-600/10 transition-all outline-none placeholder:text-[var(--app-muted)] placeholder:font-normal" type="text" placeholder="Doe" value={form.last} onChange={e => setForm({ ...form, last: e.target.value })} required />
                 </div>
+              </div>
+              <div className="mb-5">
+                <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">Employee ID</label>
+                <input className="w-full px-4 py-3 bg-white border border-[rgba(0,0,0,0.15)] rounded-xl text-[var(--app-ink)] text-[15px] font-medium focus:border-blue-600 focus:ring-[4px] focus:ring-blue-600/10 transition-all outline-none placeholder:text-[var(--app-muted)] placeholder:font-normal" type="text" placeholder="EMP-001" value={form.empId || ''} onChange={e => setForm({ ...form, empId: e.target.value })} required />
               </div>
               <div className="mb-5">
                 <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">Email Address</label>
