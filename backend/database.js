@@ -64,6 +64,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 status TEXT,
                 reason TEXT,
                 appliedOn TEXT,
+                attachment TEXT,
+                FOREIGN KEY(empId) REFERENCES employees(id)
+            )`);
+
+            db.run(`CREATE TABLE IF NOT EXISTS leave_allocations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                empId TEXT,
+                type TEXT,
+                days REAL,
                 FOREIGN KEY(empId) REFERENCES employees(id)
             )`);
 

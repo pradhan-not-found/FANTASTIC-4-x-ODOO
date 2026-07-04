@@ -191,65 +191,92 @@ export default function Profile() {
     <>
       <Topbar title="My Profile" subtitle="Manage your personal information" />
       
-      <div className="flex-1 overflow-y-auto p-8 max-w-[1000px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 no-scrollbar">
+      <div className="flex-1 overflow-y-auto p-8 max-w-[1400px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 no-scrollbar">
         
         {/* Profile hero */}
-        <div className="liquid-card-shell rounded-[18px] mb-6 overflow-hidden border border-[rgba(0,0,0,0.08)]">
-          <div className="h-32 bg-blue-50/50 border-b border-[rgba(0,0,0,0.04)] relative">
-            <div className="absolute inset-0 bg-noise opacity-[0.03]"></div>
+        <div className="rounded-[24px] mb-8 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative border border-[rgba(0,0,0,0.08)] bg-white">
+          <div className="h-44 bg-gradient-to-r from-blue-700 to-blue-900 relative">
+             <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
+               <defs>
+                 <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                   <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
+                 </pattern>
+               </defs>
+               <rect width="100%" height="100%" fill="url(#grid)" />
+             </svg>
           </div>
-          <div className="px-8 pb-8 pt-0 relative flex flex-wrap items-end justify-between gap-6 -mt-12">
-            <div className="flex items-end gap-6 flex-wrap relative z-10">
-              <div className="w-[100px] h-[100px] bg-blue-100 border-[4px] border-white rounded-2xl flex items-center justify-center text-blue-700 font-bold text-[36px] shadow-sm overflow-hidden bg-cover bg-center">
-                {profile.avatar ? (
-                  <img src={profile.avatar} alt="Avatar" crossOrigin="anonymous" className="w-full h-full object-cover" />
-                ) : (
-                  profile.name && profile.name.split(' ').map(n => n[0]).join('')
-                )}
-              </div>
-              <div className="mb-1">
-                <h1 className="text-[24px] font-bold text-[var(--app-ink)] tracking-tight mb-1">{profile.name}</h1>
-                <div className="text-[14px] text-[var(--app-muted)] font-medium flex items-center gap-3">
-                  <span>{profile.role}</span>
-                  <span className="w-1 h-1 rounded-full bg-[rgba(0,0,0,0.2)]"></span>
-                  <span>{profile.department}</span>
-                </div>
+          
+          <button 
+            onClick={() => {
+              setEditForm({
+                name: profile.name || '',
+                department: profile.department || '',
+                position: profile.position || '',
+                phone: profile.phone || '',
+                about: profile.about || '',
+                loveAboutJob: profile.loveAboutJob || '',
+                interests: profile.interests || '',
+                skills: skillsList.join(', '),
+                certifications: certsList.join(', '),
+                dob: profile.dob || '',
+                residingAddress: profile.residingAddress || '',
+                nationality: profile.nationality || '',
+                personalEmail: profile.personalEmail || '',
+                gender: profile.gender || '',
+                maritalStatus: profile.maritalStatus || '',
+                bankAccountNo: profile.bankAccountNo || '',
+                bankName: profile.bankName || '',
+                ifsc: profile.ifsc || '',
+                pan: profile.pan || '',
+                uan: profile.uan || ''
+              });
+              setIsEditing(true);
+            }}
+            className="absolute top-6 right-6 px-5 py-2.5 rounded-xl text-[13px] font-bold bg-white/20 border border-white/30 text-white hover:bg-white hover:text-blue-900 shadow-lg transition-all backdrop-blur-md flex items-center gap-2 z-20">
+            Edit Profile
+          </button>
+
+          <div className="px-8 md:px-12 relative z-10 -mt-[75px]">
+            {/* Avatar overlapping the banner */}
+            <div className="w-[150px] h-[150px] bg-white border-[6px] border-white rounded-[32px] flex items-center justify-center text-blue-700 font-bold text-[44px] shadow-sm overflow-hidden bg-cover bg-center shrink-0">
+              {profile.avatar ? (
+                <img src={profile.avatar} alt="Avatar" crossOrigin="anonymous" className="w-full h-full object-cover" />
+              ) : (
+                profile.name && profile.name.split(' ').map(n => n[0]).join('')
+              )}
+            </div>
+          </div>
+            
+          <div className="px-8 md:px-12 pb-10 pt-6 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-8">
+            <div className="flex flex-col mb-1">
+              <h1 className="text-[32px] font-black tracking-tight mb-2 text-[var(--app-ink)]">{profile.name}</h1>
+              <div className="text-[15px] font-medium flex items-center gap-3 text-[var(--app-muted)]">
+                <span className="bg-[var(--app-soft)] border border-[rgba(0,0,0,0.06)] px-3 py-1 rounded-full text-[var(--app-ink)] tracking-wide shadow-sm">{profile.role}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[rgba(0,0,0,0.2)]"></span>
+                <span className="tracking-wide">{profile.department}</span>
               </div>
             </div>
-            <button 
-              onClick={() => {
-                setEditForm({
-                  name: profile.name || '',
-                  department: profile.department || '',
-                  position: profile.position || '',
-                  phone: profile.phone || '',
-                  about: profile.about || '',
-                  loveAboutJob: profile.loveAboutJob || '',
-                  interests: profile.interests || '',
-                  skills: skillsList.join(', '),
-                  certifications: certsList.join(', '),
-                  dob: profile.dob || '',
-                  residingAddress: profile.residingAddress || '',
-                  nationality: profile.nationality || '',
-                  personalEmail: profile.personalEmail || '',
-                  gender: profile.gender || '',
-                  maritalStatus: profile.maritalStatus || '',
-                  bankAccountNo: profile.bankAccountNo || '',
-                  bankName: profile.bankName || '',
-                  ifsc: profile.ifsc || '',
-                  pan: profile.pan || '',
-                  uan: profile.uan || ''
-                });
-                setIsEditing(true);
-              }}
-              className="px-5 py-2.5 rounded-lg text-[13.5px] font-medium bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all mb-1 z-10">
-              Edit Profile
-            </button>
+
+            {/* Contact Info */}
+            <div className="flex flex-wrap gap-x-10 gap-y-6 bg-[rgba(0,0,0,0.02)] p-6 md:px-8 md:py-6 rounded-[20px] border border-[rgba(0,0,0,0.06)] w-full xl:w-auto mt-2 xl:mt-0">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Email</span>
+                <span className="text-[14.5px] font-semibold text-[var(--app-ink)] tracking-wide">{profile.email}</span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Phone</span>
+                <span className="text-[14.5px] font-semibold text-[var(--app-ink)] tracking-wide">{profile.phone || '-'}</span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Join Date</span>
+                <span className="text-[14.5px] font-semibold text-[var(--app-ink)] tracking-wide">{profile.joinDate}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 flex flex-col gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] gap-8">
+          <div className="flex flex-col gap-6">
             
             {/* Tabs Navigation */}
             <div className="flex border-b border-[rgba(0,0,0,0.06)] mb-2 overflow-x-auto no-scrollbar liquid-row">
@@ -530,61 +557,57 @@ export default function Profile() {
           </div>
           
           <div className="flex flex-col gap-6">
-            <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
+            <div className="liquid-card-shell rounded-[18px] p-6 card-elevate bg-white">
               <h2 className="text-[15px] font-bold text-[var(--app-ink)] tracking-tight mb-4 border-b border-[rgba(0,0,0,0.06)] pb-4">Digital ID Card</h2>
-              <div ref={idCardRef} className="bg-white rounded-[16px] border border-[rgba(0,0,0,0.12)] shadow-sm overflow-hidden mb-4 relative">
-                <div className="h-16 bg-blue-600 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:10px_10px]"></div>
+              
+              <div ref={idCardRef} className="bg-[#e4e5dd] border-2 border-black p-5 flex flex-col font-sans relative mx-auto w-full max-w-[380px] aspect-[3/4.2]">
+                <div className="text-[32px] xl:text-[38px] font-black leading-[0.9] tracking-tighter uppercase text-black z-20 pb-4 pr-[35px] break-words pt-3">
+                  {profile.name ? profile.name.split(' ').map((part, i) => <div key={i} className="break-all">{part}</div>) : 'Employee'}
                 </div>
-                <div className="px-5 pb-5 flex flex-col items-center text-center -mt-8 relative z-10">
-                  <div className="w-16 h-16 rounded-full border-4 border-white bg-blue-100 flex items-center justify-center font-bold text-[20px] text-blue-700 shadow-sm mb-3 overflow-hidden bg-cover bg-center">
-                    {profile.avatar ? (
-                      <img src={profile.avatar} alt="Avatar" crossOrigin="anonymous" className="w-full h-full object-cover" />
-                    ) : (
-                      profile.name && profile.name.split(' ').map(n => n[0]).join('')
-                    )}
+                
+                <div className="absolute right-6 top-[120px] bottom-[100px] w-[28px] flex flex-col z-20 justify-between py-2">
+                  {[...Array(40)].map((_, i) => (
+                     <div key={i} className="bg-black w-full" style={{ height: `${[2,4,1,6,1,3,2,1,5,1,2,1][i%12]}px`, marginBottom: `${[2,1,3,1,2,1,1,2,1,3,1,1][i%12]}px` }}></div>
+                  ))}
+                </div>
+
+                <div className="flex-1 flex justify-center items-end relative z-10 pr-[52px]">
+                  {profile.avatar ? (
+                    <img 
+                      src={profile.avatar} 
+                      alt="Avatar" 
+                      crossOrigin="anonymous" 
+                      className="w-full aspect-[4/5] object-cover grayscale contrast-125 mix-blend-multiply filter" 
+                    />
+                  ) : (
+                    <div className="w-full aspect-[4/5] bg-black/5 flex items-center justify-center font-black text-[60px] text-black/20 mix-blend-multiply border-2 border-dashed border-black/20">
+                      {profile.name ? profile.name.split(' ').map(n => n[0]).join('') : '?'}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="z-20 mt-2 mb-4">
+                  <span className="text-[11px] font-mono font-bold tracking-widest uppercase text-black">ID: {profile.id ? profile.id.replace('EMP', '000') : '00000'}</span>
+                </div>
+
+                <div className="pt-3 border-t-2 border-black flex justify-between items-end z-20">
+                  <div className="flex flex-col text-black">
+                    <span className="text-[18px] font-black leading-[0.9] tracking-tighter">Workplace</span>
+                    <span className="text-[18px] font-black leading-[0.9] tracking-tighter">Science Dept.</span>
                   </div>
-                  <div className="font-bold text-[16px] text-[var(--app-ink)] leading-tight">{profile.name}</div>
-                  <div className="text-[12px] font-medium text-[var(--app-muted)] mb-4">{profile.role}</div>
-                  
-                  <div className="w-full bg-[var(--app-soft)] rounded-lg p-3 grid grid-cols-2 gap-y-3 gap-x-2 text-left">
-                    <div>
-                      <div className="text-[9px] uppercase tracking-widest font-bold text-[var(--app-muted)]">EMP ID</div>
-                      <div className="font-mono text-[11px] font-semibold text-[var(--app-ink)]">{profile.id}</div>
-                    </div>
-                    <div>
-                      <div className="text-[9px] uppercase tracking-widest font-bold text-[var(--app-muted)]">Blood</div>
-                      <div className="font-semibold text-[11px] text-[var(--app-ink)]">O+</div>
-                    </div>
-                    <div className="col-span-2">
-                      <div className="text-[9px] uppercase tracking-widest font-bold text-[var(--app-muted)]">Dept</div>
-                      <div className="font-semibold text-[11px] text-[var(--app-ink)]">{profile.department}</div>
-                    </div>
+                  <div className="flex items-center gap-3 pb-1">
+                    <img src="/logo.png" className="h-[18px] w-auto object-contain brightness-0" alt="Workplace Logo" />
                   </div>
                 </div>
               </div>
-              <button 
-                onClick={handleDownload}
-                className="w-full py-2.5 rounded-lg text-[13px] font-bold text-[var(--app-ink)] border border-[rgba(0,0,0,0.12)] hover:bg-[var(--app-soft)] shadow-sm transition-all text-center">
-                ↓ Download ID Card
-              </button>
-            </div>
-            
-            <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
-              <h2 className="text-[15px] font-bold text-[var(--app-ink)] tracking-tight mb-4 border-b border-[rgba(0,0,0,0.06)] pb-4">Contact Info</h2>
-              <div className="flex flex-col gap-4">
-                <div>
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Email (Work)</div>
-                  <div className="text-[13px] font-medium text-blue-600">{profile.email}</div>
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Phone</div>
-                  <div className="text-[13px] font-medium text-[var(--app-ink)]">{profile.phone || '-'}</div>
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Join Date</div>
-                  <div className="text-[13px] font-medium text-[var(--app-ink)]">{profile.joinDate}</div>
-                </div>
+              
+              <div className="pt-4 mt-2">
+                <button 
+                  onClick={handleDownload}
+                  className="w-full py-2.5 rounded-lg text-[13.5px] font-bold text-black border-2 border-black hover:bg-black hover:text-white transition-all text-center flex items-center justify-center gap-2 uppercase tracking-wider">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download ID Card
+                </button>
               </div>
             </div>
           </div>

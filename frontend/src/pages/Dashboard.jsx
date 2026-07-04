@@ -53,15 +53,26 @@ function AdminDashboard() {
   });
   const DEPT_STATS = Object.values(deptStatsMap);
 
+  const currentHour = new Date().getHours();
+  let greeting = 'Good morning';
+  if (currentHour >= 12 && currentHour < 17) greeting = 'Good afternoon';
+  else if (currentHour >= 17) greeting = 'Good evening';
+
   return (
     <div className="flex-1 p-8 max-w-[1300px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
-            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, {firstName}</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-9 h-9 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden shrink-0 shadow-sm text-blue-700 font-bold text-[14px]">
+              {user.avatar ? (
+                <img src={user.avatar} crossOrigin="anonymous" alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                firstName[0]
+              )}
+            </div>
+            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">{greeting}, {firstName}</h1>
           </div>
-          <p className="text-[13.5px] text-[var(--app-muted)]">Here's what's happening across your organization today.</p>
+          <p className="text-[13.5px] text-[var(--app-muted)] mt-1">Here's what's happening across your organization today.</p>
         </div>
         <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
           + Add Employee
@@ -235,15 +246,26 @@ function EmployeeDashboard() {
   const today = new Date().toISOString().split('T')[0];
   const todaysAttendance = attendance.find(a => a.date === today);
 
+  const currentHour = new Date().getHours();
+  let greeting = 'Good morning';
+  if (currentHour >= 12 && currentHour < 17) greeting = 'Good afternoon';
+  else if (currentHour >= 17) greeting = 'Good evening';
+
   return (
     <div className="flex-1 p-8 max-w-[1300px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
-            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, {firstName}</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-9 h-9 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden shrink-0 shadow-sm text-blue-700 font-bold text-[14px]">
+              {user.avatar ? (
+                <img src={user.avatar} crossOrigin="anonymous" alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                firstName[0]
+              )}
+            </div>
+            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">{greeting}, {firstName}</h1>
           </div>
-          <p className="text-[13.5px] text-[var(--app-muted)]">Welcome back to your employee portal.</p>
+          <p className="text-[13.5px] text-[var(--app-muted)] mt-1">Welcome back to your employee portal.</p>
         </div>
         <Link to="/leaves" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
           Request Leave
@@ -269,6 +291,63 @@ function EmployeeDashboard() {
             </div>
           );
         })}
+      </div>
+
+      {/* Payroll Summary Section */}
+      <div className="liquid-card-shell rounded-[18px] p-6 mb-8 card-elevate">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <div className="text-[15px] font-bold text-[var(--app-ink)] tracking-tight">Payroll Summary</div>
+            <div className="text-[12px] text-[var(--app-muted)] mt-0.5">Current month processing status</div>
+          </div>
+          <Link to="/payroll" className="text-[13px] text-[var(--app-ink)] font-bold hover:underline inline-flex items-center gap-1">
+            View full slip <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+        
+        {payroll.length === 0 ? (
+          <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+              <Wallet className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h4 className="text-[14px] font-bold text-blue-900 mb-1">Your payroll has not been generated this month</h4>
+              <p className="text-[13px] text-blue-700/80 leading-relaxed max-w-[500px]">
+                Your salary slip for the current billing cycle is still being processed by HR. You can expect deductions for {approvedLeaves > 0 ? `${approvedLeaves} leaves taken` : 'any unpaid leaves'} and applicable taxes once generated.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-green-50/50 border border-green-100 rounded-xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-[14px] font-bold text-green-900 mb-1">Payroll Generated Successfully</h4>
+              <p className="text-[13px] text-green-700/80 leading-relaxed mb-4">
+                Your salary for this month has been processed. Total deductions (Taxes + unpaid absences) amount to ₹{payroll[0].deductions}.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-white p-3 rounded-lg shadow-sm border border-green-100/50">
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Net Salary</div>
+                  <div className="text-[16px] font-black text-green-700">₹{payroll[0].netSalary}</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg shadow-sm border border-green-100/50">
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Basic Pay</div>
+                  <div className="text-[15px] font-bold text-gray-700">₹{payroll[0].basic}</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg shadow-sm border border-green-100/50">
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Allowances</div>
+                  <div className="text-[15px] font-bold text-gray-700">₹{payroll[0].allowance}</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg shadow-sm border border-red-50">
+                  <div className="text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Deductions</div>
+                  <div className="text-[15px] font-bold text-red-600">-₹{payroll[0].deductions}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

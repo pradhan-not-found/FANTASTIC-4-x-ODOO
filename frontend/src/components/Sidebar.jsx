@@ -5,6 +5,7 @@ import {
   LayoutDashboard, User, Clock, CalendarDays, Wallet, Users, LogOut,
   Bell, Building2, MessageSquare, Settings, ChevronUp, PanelLeftClose
 } from 'lucide-react';
+import AIChatbot from './AIChatbot';
 
 const NAV_EMPLOYEE = [
   { label: 'HR Management', items: [
@@ -80,7 +81,7 @@ export default function Sidebar({ role = 'admin' }) {
 
         {/* Bottom */}
         <div className="flex flex-col items-center gap-4 w-full px-2">
-          <div className="w-5 h-5 rounded-full border-[2.5px] border-green-500 bg-white shadow-sm"></div>
+          <AIChatbot />
           <Link to="/profile" className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden cursor-pointer border border-[rgba(0,0,0,0.08)] shadow-sm hover:shadow-md transition-all shrink-0">
             {user.avatar
               ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />

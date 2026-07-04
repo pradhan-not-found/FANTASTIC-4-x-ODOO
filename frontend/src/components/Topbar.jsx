@@ -8,6 +8,8 @@ export default function Topbar({ title, subtitle, children }) {
   const [checkInTime, setCheckInTime] = useState(null);
   const [elapsed, setElapsed] = useState('00:00:00');
   const [attendanceId, setAttendanceId] = useState(null);
+  const [hasCheckedOutToday, setHasCheckedOutToday] = useState(false);
+  const [showCheckOutMessage, setShowCheckOutMessage] = useState(false);
   const user = JSON.parse(localStorage.getItem('hrms_user') || '{}');
 
   useEffect(() => {
@@ -17,7 +19,11 @@ export default function Topbar({ title, subtitle, children }) {
          .then(data => {
             const today = new Date().toISOString().split('T')[0];
             const todayRecord = data.find(d => d.date === today && !d.checkOut);
-            if (todayRecord) {
+            const completedRecord = data.find(d => d.date === today && d.checkOut);
+            
+            if (completedRecord) {
+               setHasCheckedOutToday(true);
+            } else if (todayRecord) {
                setIsCheckedIn(true);
                const [hours, minutes] = todayRecord.checkIn.split(':');
                const d = new Date();
@@ -65,7 +71,13 @@ export default function Topbar({ title, subtitle, children }) {
       setCheckInTime(null);
       setElapsed('00:00:00');
       setAttendanceId(null);
+      setHasCheckedOutToday(true);
+      setShowCheckOutMessage(true);
     } else {
+      if (hasCheckedOutToday) {
+        setShowCheckOutMessage(true);
+        return;
+      }
       try {
         const res = await fetch(`http://localhost:3000/api/attendance/checkin`, {
             method: 'POST',
@@ -85,7 +97,38 @@ export default function Topbar({ title, subtitle, children }) {
   };
 
   return (
-    <div className="sticky top-0 z-50 flex items-center justify-between px-8 h-[64px] bg-[#ffffff] border-b border-[rgba(0,0,0,0.08)] backdrop-blur-md bg-white/80 shrink-0">
+    <>
+      {showCheckOutMessage && (
+        <div className="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
+          <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"></div>
+          
+          <img src="/logo.png" className="h-[48px] w-auto object-contain absolute top-12 left-12 animate-in fade-in slide-in-from-top-4 duration-700" alt="Workplace Logo" />
+          
+          <div className="max-w-[640px] w-full text-center flex flex-col items-center">
+            <div className="w-28 h-28 bg-[rgba(0,0,0,0.02)] border border-[rgba(0,0,0,0.04)] rounded-[32px] flex items-center justify-center mb-8 shadow-inner animate-in zoom-in-75 duration-700">
+              <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            
+            <h1 className="text-[48px] font-black text-[var(--app-ink)] tracking-tighter leading-none mb-6 animate-in slide-in-from-bottom-8 duration-700 delay-100">
+              Already Signed Out
+            </h1>
+            
+            <p className="text-[18px] text-[var(--app-muted)] leading-relaxed mb-12 animate-in slide-in-from-bottom-8 duration-700 delay-200 max-w-[500px]">
+              You have successfully completed your work hours for today. Please return tomorrow to check in and resume your activities. Have a great evening!
+            </p>
+            
+            <button 
+              onClick={() => setShowCheckOutMessage(false)} 
+              className="px-10 py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-bold text-[16px] shadow-[0_12px_24px_rgba(0,0,0,0.15)] transition-all hover:shadow-[0_16px_32px_rgba(0,0,0,0.2)] hover:-translate-y-1 animate-in slide-in-from-bottom-8 duration-700 delay-300 uppercase tracking-widest"
+            >
+              Return to Application
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="sticky top-0 z-50 flex items-center justify-between px-8 h-[64px] bg-[#ffffff] border-b border-[rgba(0,0,0,0.08)] backdrop-blur-md bg-white/80 shrink-0">
       <div className="flex items-center gap-4">
         <div>
           <div className="text-[16px] font-bold text-[var(--app-ink)] tracking-tight">{title}</div>
@@ -149,5 +192,6 @@ export default function Topbar({ title, subtitle, children }) {
         {children}
       </div>
     </div>
+    </>
   );
 }

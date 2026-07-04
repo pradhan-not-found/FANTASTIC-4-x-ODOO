@@ -220,7 +220,7 @@ app.get('/api/leaves/:empId', (req, res) => {
 });
 
 app.post('/api/leaves', (req, res) => {
-    const { empId, type, fromDate, toDate, days, reason } = req.body;
+    const { empId, type, fromDate, toDate, days, reason, attachment } = req.body;
     if (!empId || !type || !fromDate || !toDate || !days) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -228,11 +228,39 @@ app.post('/api/leaves', (req, res) => {
     const status = 'Pending';
     const appliedOn = new Date().toISOString().split('T')[0];
     db.run(
-        'INSERT INTO leaves (id, empId, type, fromDate, toDate, days, status, reason, appliedOn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [id, empId, type, fromDate, toDate, days, status, reason || '', appliedOn],
+        'INSERT INTO leaves (id, empId, type, fromDate, toDate, days, status, reason, appliedOn, attachment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [id, empId, type, fromDate, toDate, days, status, reason || '', appliedOn, attachment || null],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ success: true, message: 'Leave applied successfully', id });
+        }
+    );
+});
+
+// ALLOCATIONS
+app.get('/api/allocations', (req, res) => {
+    db.all('SELECT * FROM leave_allocations', [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+app.get('/api/allocations/:empId', (req, res) => {
+    db.all('SELECT * FROM leave_allocations WHERE empId = ?', [req.params.empId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+app.post('/api/allocations', (req, res) => {
+    const { empId, type, days } = req.body;
+    if (!empId || !type || !days) return res.status(400).json({ error: 'Missing fields' });
+    db.run(
+        'INSERT INTO leave_allocations (empId, type, days) VALUES (?, ?, ?)',
+        [empId, type, days],
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, id: this.lastID });
         }
     );
 });

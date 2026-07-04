@@ -208,7 +208,7 @@ function EmployeeAttendance() {
   const todaysAttendance = myAttendance.find(a => a.date === today);
 
   return (
-    <div className="flex-1 p-8 max-w-[1000px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex-1 p-8 max-w-[1000px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
       <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
         <div>
           <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">My Attendance</h1>

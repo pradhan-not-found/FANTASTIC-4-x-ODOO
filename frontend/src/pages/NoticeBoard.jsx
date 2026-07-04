@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Topbar from '../components/Topbar';
-import { Bell, AlertCircle, Calendar, Info, Plus, ChevronRight, MessageSquareWarning, X, Trash2 } from 'lucide-react';
+import { Bell, AlertCircle, Calendar, Info, Plus, ChevronRight, MessageSquareWarning, X, Trash2, Send } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const TYPE_CONFIG = {
@@ -214,21 +214,25 @@ export default function NoticeBoard() {
               <div>
                 <label className="block text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-2">Type</label>
                 <div className="flex gap-3">
-                  {['info', 'event', 'urgent'].map(t => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setForm({ ...form, type: t })}
-                      className={cn(
-                        "flex-1 py-2 rounded-xl text-[13px] font-bold capitalize border transition-all",
-                        form.type === t
-                          ? t === 'urgent' ? 'bg-red-50 border-red-300 text-red-700' : t === 'event' ? 'bg-purple-50 border-purple-300 text-purple-700' : 'bg-blue-50 border-blue-300 text-blue-700'
-                          : 'bg-[var(--app-soft)] border-[rgba(0,0,0,0.1)] text-[var(--app-muted)]'
-                      )}
-                    >
-                      {t}
-                    </button>
-                  ))}
+                  {['info', 'event', 'urgent'].map(t => {
+                    const Icon = t === 'urgent' ? AlertCircle : t === 'event' ? Calendar : Info;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setForm({ ...form, type: t })}
+                        className={cn(
+                          "flex-1 py-2 rounded-xl text-[13px] font-bold capitalize border transition-all flex items-center justify-center gap-2",
+                          form.type === t
+                            ? t === 'urgent' ? 'bg-red-50 border-red-300 text-red-700' : t === 'event' ? 'bg-purple-50 border-purple-300 text-purple-700' : 'bg-blue-50 border-blue-300 text-blue-700'
+                            : 'bg-[var(--app-soft)] border-[rgba(0,0,0,0.1)] text-[var(--app-muted)] hover:bg-[rgba(0,0,0,0.02)]'
+                        )}
+                      >
+                        <Icon className="w-4 h-4" />
+                        {t}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
@@ -249,7 +253,11 @@ export default function NoticeBoard() {
                   Cancel
                 </button>
                 <button type="submit" disabled={posting} className="px-8 py-2.5 rounded-xl text-[14px] font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm min-w-[120px] flex justify-center items-center gap-2">
-                  {posting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : '📢 Post'}
+                  {posting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : (
+                    <>
+                      <Send className="w-4 h-4" /> Post
+                    </>
+                  )}
                 </button>
               </div>
             </form>

@@ -5,10 +5,7 @@ function AdminPayroll() {
   const [employees, setEmployees] = useState([]);
   const [payroll, setPayroll] = useState([]);
   const [running, setRunning] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  });
+  const [selectedMonth, setSelectedMonth] = useState('2026-04');
 
   const fetchData = async () => {
     try {
@@ -52,8 +49,8 @@ function AdminPayroll() {
 
   const filteredPayroll = payroll.filter(p => p.month === selectedMonth);
   const totalNet = filteredPayroll.reduce((acc, p) => acc + (p.netSalary || p.net || 0), 0);
-  const totalDeductions = filteredPayroll.reduce((acc, p) => acc + (p.deductions || 0), 0);
-  const totalAllowances = filteredPayroll.reduce((acc, p) => acc + (p.allowances || 0), 0);
+  const totalDeductions = filteredPayroll.reduce((acc, p) => acc + (p.deductions || (p.pf || 0) + (p.tax || 0)), 0);
+  const totalAllowances = filteredPayroll.reduce((acc, p) => acc + (p.allowances || (p.hra || 0) + (p.da || 0)), 0);
 
   return (
     <div className="flex-1 p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -72,9 +69,14 @@ function AdminPayroll() {
           <button
             onClick={handleRunPayroll}
             disabled={running}
-            className={`px-5 py-2.5 rounded-lg text-[13.5px] font-semibold shadow-sm transition-all border ${running ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600'}`}
+            className={`px-5 py-2.5 rounded-lg text-[13.5px] font-semibold shadow-sm transition-all border flex items-center gap-2 ${running ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600'}`}
           >
-            {running ? 'Running...' : '⚡ Run Payroll'}
+            {running ? 'Running...' : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                Run Payroll
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -123,8 +125,8 @@ function AdminPayroll() {
                   <td className="py-3.5 px-5 text-center font-mono text-green-700 font-bold">{p.presentDays ?? '-'}</td>
                   <td className="py-3.5 px-5 text-center font-mono text-red-500 font-bold">{p.lopDays ?? '-'}</td>
                   <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-right">₹{(p.basic||0).toLocaleString()}</td>
-                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-right">₹{(p.allowances||0).toLocaleString()}</td>
-                  <td className="py-3.5 px-5 font-mono text-red-500 text-right">-₹{(p.deductions||0).toLocaleString()}</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-right">₹{(p.allowances || (p.hra || 0) + (p.da || 0)).toLocaleString()}</td>
+                  <td className="py-3.5 px-5 font-mono text-red-500 text-right">-₹{(p.deductions || (p.pf || 0) + (p.tax || 0)).toLocaleString()}</td>
                   <td className="py-3.5 px-5 font-mono text-[var(--app-ink)] font-bold text-right">₹{netPay.toLocaleString()}</td>
                   <td className="py-3.5 px-5 text-center">
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border bg-green-50 text-green-700 border-green-200">
@@ -136,7 +138,7 @@ function AdminPayroll() {
               {filteredPayroll.length === 0 && (
                 <tr>
                   <td colSpan="8" className="py-10 text-center text-[13px] text-[var(--app-muted)]">
-                    No payroll for {selectedMonth}. Click <strong>⚡ Run Payroll</strong> to generate.
+                    No payroll for {selectedMonth}. Click <strong className="text-blue-600">Run Payroll</strong> to generate.
                   </td>
                 </tr>
               )}
@@ -173,43 +175,56 @@ function EmployeePayroll() {
     fetchPayroll();
   }, [user.id]);
 
-  if (!payroll) {
-    return (
-      <div className="flex-1 p-8 flex items-center justify-center flex-col gap-4 text-[var(--app-muted)]">
-        <div className="text-[20px] font-bold">No Payroll Data</div>
-        <p className="text-[14px]">Your payroll data has not been generated for this month yet.</p>
-      </div>
-    );
-  }
+  const p = payroll || {
+    month: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+    netSalary: 0,
+    basic: 0,
+    hra: 0,
+    da: 0,
+    pf: 0,
+    tax: 0,
+    status: 'Pending'
+  };
 
-  // Assuming structure has basic, allowances, deductions, netSalary, month
-  // Since db structure is flat basic, allowances, deductions, netSalary, we make some assumptions for breakdown:
-  const hra = payroll.allowances * 0.6;
-  const special = payroll.allowances * 0.4;
-  const pf = payroll.deductions * 0.5;
-  const pt = 200;
-  const tds = payroll.deductions - pf - pt;
+  const hra = p.hra || 0;
+  const special = p.da || 0;
+  const pf = p.pf || 0;
+  const pt = p.tax || 0;
+  const tds = 0;
+  const allowances = hra + special;
+  const deductions = pf + pt + tds;
 
   return (
-    <div className="flex-1 p-8 max-w-[1000px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
+    <div className="flex-1 p-8 max-w-[1000px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+      {!payroll && (
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-[3px] z-20 flex flex-col items-center justify-center rounded-3xl m-4">
+          <div className="bg-white px-8 py-6 rounded-2xl shadow-xl border border-[rgba(0,0,0,0.06)] flex flex-col items-center">
+            <h2 className="text-[20px] font-black text-[var(--app-ink)] tracking-tight mb-2 text-center">No Payroll Data</h2>
+            <p className="text-[13.5px] text-[var(--app-muted)] font-medium text-center">
+              Your payroll data has not been generated for this month yet.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-start justify-between mb-8 flex-wrap gap-4 relative z-10">
         <div>
           <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">My Payroll</h1>
           <p className="text-[13.5px] text-[var(--app-muted)]">Salary slips and compensation details.</p>
         </div>
-        <button className="px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all">
+        <button disabled={!payroll} className="px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed">
           ↓ Download Payslip
         </button>
       </div>
 
-      <div className="liquid-card-shell rounded-[18px] p-8 card-elevate mb-8 bg-gradient-to-br from-blue-50/50 to-transparent">
+      <div className="liquid-card-shell rounded-[18px] p-8 card-elevate mb-8 bg-gradient-to-br from-blue-50/50 to-transparent relative z-10">
         <div className="flex justify-between items-center flex-wrap gap-6">
           <div>
-            <div className="text-[13px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-2">Net Salary — {payroll.month}</div>
-            <div className="text-[40px] font-black text-[var(--app-ink)] tracking-tight font-mono mb-2">₹{payroll.netSalary.toLocaleString()}</div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-100 text-green-800 border border-green-200">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span>
-              Credited (Status: {payroll.status})
+            <div className="text-[13px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-2">Net Salary — {p.month}</div>
+            <div className="text-[40px] font-black text-[var(--app-ink)] tracking-tight font-mono mb-2">₹{(p.netSalary || p.net || 0).toLocaleString()}</div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
+              <span className="w-2 h-2 rounded-full bg-gray-400"></span>
+              {payroll ? `Credited (Status: ${p.status})` : 'Pending Generation'}
             </div>
           </div>
           <div className="text-right">
@@ -221,15 +236,15 @@ function EmployeePayroll() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
         <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
           <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight border-b border-[rgba(0,0,0,0.06)] pb-4 text-green-700 flex justify-between">
-            Earnings <span>₹{(payroll.basic + payroll.allowances).toLocaleString()}</span>
+            Earnings <span>₹{((p.basic || 0) + allowances).toLocaleString()}</span>
           </h2>
           <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center text-[13.5px]">
               <span className="text-[var(--app-muted)] font-medium">Basic Salary</span>
-              <span className="font-mono font-medium text-[var(--app-ink)]">₹{payroll.basic.toLocaleString()}</span>
+              <span className="font-mono font-medium text-[var(--app-ink)]">₹{(p.basic || 0).toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center text-[13.5px]">
               <span className="text-[var(--app-muted)] font-medium">HRA</span>
@@ -244,7 +259,7 @@ function EmployeePayroll() {
 
         <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
           <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight border-b border-[rgba(0,0,0,0.06)] pb-4 text-red-600 flex justify-between">
-            Deductions <span>₹{payroll.deductions.toLocaleString()}</span>
+            Deductions <span>₹{deductions.toLocaleString()}</span>
           </h2>
           <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center text-[13.5px]">
