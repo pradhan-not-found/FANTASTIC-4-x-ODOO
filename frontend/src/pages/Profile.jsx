@@ -12,6 +12,7 @@ export default function Profile() {
   
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [latestPayroll, setLatestPayroll] = useState(null);
 
   const [editForm, setEditForm] = useState({
     name: '', department: '', position: '', phone: '', about: '',
@@ -28,10 +29,12 @@ export default function Profile() {
   const fetchProfile = async () => {
     if (!user.id) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/employees/${user.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        // Parse JSON strings back to arrays if needed, SQLite stores strings
+      const [empRes, payrollRes] = await Promise.all([
+        fetch(`http://localhost:3000/api/employees/${user.id}`),
+        fetch(`http://localhost:3000/api/payroll/${user.id}`)
+      ]);
+      if (empRes.ok) {
+        const data = await empRes.json();
         if (typeof data.skills === 'string' && data.skills.startsWith('[')) {
           try { data.skills = JSON.parse(data.skills); } catch(e){}
         }
@@ -39,6 +42,10 @@ export default function Profile() {
           try { data.certifications = JSON.parse(data.certifications); } catch(e){}
         }
         setProfile(data);
+      }
+      if (payrollRes.ok) {
+        const payData = await payrollRes.json();
+        if (payData.length > 0) setLatestPayroll(payData[0]);
       }
     } catch (err) {
       console.error(err);
@@ -212,7 +219,7 @@ export default function Profile() {
             
             {/* Tabs Navigation */}
             <div className="flex border-b border-[rgba(0,0,0,0.06)] mb-2 overflow-x-auto no-scrollbar liquid-row">
-              {['Resume', 'Private Info', 'Security'].map(tab => {
+              {['Resume', 'Private Info', ...(role === 'admin' ? ['Salary Info'] : []), 'Security'].map(tab => {
                 const tabKey = tab.toLowerCase().replace(' ', '-');
                 return (
                   <button 
@@ -340,6 +347,82 @@ export default function Profile() {
                 </div>
               </div>
             )}
+
+            {activeTab === 'salary-info' && role === 'admin' && (() => {
+              const monthlySalary = profile.salary || 0;
+              const yearlySalary = monthlySalary * 12;
+              const basic = Math.round(monthlySalary * 0.4);
+              const hra = Math.round(basic * 0.4);
+              const performanceBonus = Math.round(monthlySalary * 0.08);
+              const lta = Math.round(monthlySalary * 0.05);
+              const foodAllowance = Math.round(monthlySalary * 0.03);
+              const pf = Math.round(basic * 0.12);
+              const pt = 200;
+              const tds = Math.max(0, Math.round((monthlySalary - 250000 / 12) * 0.1));
+              const totalDeductions = pf + pt + tds;
+              const totalAllowances = hra + performanceBonus + lta + foodAllowance;
+              const netPay = latestPayroll ? (latestPayroll.netSalary || latestPayroll.net || 0) : (basic + totalAllowances - totalDeductions);
+
+              const components = [
+                { label: 'Basic Salary', amount: basic, type: 'earning', note: '40% of wage' },
+                { label: 'HRA', amount: hra, type: 'earning', note: '40% of Basic' },
+                { label: 'Performance Bonus', amount: performanceBonus, type: 'earning', note: '8% of wage' },
+                { label: 'Leave Travel Allowance', amount: lta, type: 'earning', note: '5% of wage' },
+                { label: 'Food Allowance', amount: foodAllowance, type: 'earning', note: '3% of wage' },
+                { label: 'Provident Fund', amount: pf, type: 'deduction', note: '12% of Basic' },
+                { label: 'Professional Tax', amount: pt, type: 'deduction', note: 'Fixed ₹200' },
+                { label: 'TDS', amount: tds, type: 'deduction', note: '10% of taxable income' },
+              ];
+
+              return (
+                <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  {/* Wage Summary */}
+                  <div className="liquid-card-shell rounded-[18px] p-6 card-elevate bg-gradient-to-br from-blue-50/60 to-transparent">
+                    <h3 className="text-[15px] font-bold text-[var(--app-ink)] tracking-tight mb-5 border-b border-[rgba(0,0,0,0.06)] pb-4">Wage Information</h3>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <div className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Monthly Wage</div>
+                        <div className="text-[28px] font-black text-[var(--app-ink)] font-mono tracking-tight">₹{monthlySalary.toLocaleString()}</div>
+                        <div className="text-[12px] text-[var(--app-muted)] mt-1">per month</div>
+                      </div>
+                      <div>
+                        <div className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Yearly Wage</div>
+                        <div className="text-[28px] font-black text-blue-600 font-mono tracking-tight">₹{yearlySalary.toLocaleString()}</div>
+                        <div className="text-[12px] text-[var(--app-muted)] mt-1">per annum (CTC)</div>
+                      </div>
+                    </div>
+                    {latestPayroll && (
+                      <div className="mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)] flex items-center justify-between">
+                        <div className="text-[13px] text-[var(--app-muted)]">Last payroll: <span className="font-semibold text-[var(--app-ink)]">{latestPayroll.month}</span></div>
+                        <div className="text-[13px] font-bold text-green-700">Net: ₹{netPay.toLocaleString()}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Salary Components */}
+                  <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
+                    <h3 className="text-[15px] font-bold text-[var(--app-ink)] tracking-tight mb-5 border-b border-[rgba(0,0,0,0.06)] pb-4">Salary Components</h3>
+                    <div className="flex flex-col gap-3">
+                      {components.map((c, i) => (
+                        <div key={i} className="flex items-center justify-between py-2.5 border-b border-[rgba(0,0,0,0.04)] last:border-0">
+                          <div>
+                            <div className="text-[13.5px] font-semibold text-[var(--app-ink)]">{c.label}</div>
+                            <div className="text-[11.5px] text-[var(--app-muted)] mt-0.5">{c.note}</div>
+                          </div>
+                          <div className={`font-mono font-bold text-[14px] ${c.type === 'deduction' ? 'text-red-600' : 'text-green-700'}`}>
+                            {c.type === 'deduction' ? '-' : '+'}₹{c.amount.toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="flex items-center justify-between pt-3 mt-1 border-t-2 border-[rgba(0,0,0,0.08)]">
+                        <div className="text-[14px] font-bold text-[var(--app-ink)]">Estimated Net Pay</div>
+                        <div className="font-mono font-black text-[16px] text-blue-600">₹{(basic + totalAllowances - totalDeductions).toLocaleString()}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
           
           <div className="flex flex-col gap-6">
