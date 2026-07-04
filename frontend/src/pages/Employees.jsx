@@ -1,10 +1,33 @@
+import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { EMPLOYEES } from '../data/mockData';
-
+import { X, UserPlus, Mail, CheckCircle2, User } from 'lucide-react';
 
 export default function Employees() {
   const role = localStorage.getItem('hrms_role') || 'admin';
+  const [employeesList, setEmployeesList] = useState(EMPLOYEES);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newEmp, setNewEmp] = useState({ name: '', email: '', role: '', department: '' });
+
+  const handleAddEmployee = (e) => {
+    e.preventDefault();
+    if (!newEmp.name || !newEmp.email || !newEmp.role || !newEmp.department) return;
+    
+    const emp = {
+      id: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+      name: newEmp.name,
+      role: newEmp.role,
+      department: newEmp.department,
+      email: newEmp.email,
+      joinDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+      status: 'active'
+    };
+    
+    setEmployeesList([emp, ...employeesList]);
+    setIsModalOpen(false);
+    setNewEmp({ name: '', email: '', role: '', department: '' });
+  };
 
   return (
     <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
@@ -23,7 +46,10 @@ export default function Employees() {
               <button className="px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all">
                 Export CSV
               </button>
-              <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all border border-blue-600">
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all border border-blue-600"
+              >
                 + Add Employee
               </button>
             </div>
@@ -42,7 +68,7 @@ export default function Employees() {
                 </select>
               </div>
               <div className="text-[12px] text-[var(--app-muted)] font-medium">
-                Showing {EMPLOYEES.length} results
+                Showing {employeesList.length} results
               </div>
             </div>
             
@@ -59,7 +85,7 @@ export default function Employees() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-                  {EMPLOYEES.map(e => (
+                  {employeesList.map(e => (
                     <tr key={e.id} className="hover:bg-[rgba(0,0,0,0.01)] transition-colors group">
                       <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
@@ -107,6 +133,95 @@ export default function Employees() {
           
         </div>
       </div>
+
+      {/* Professional Add Employee Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] backdrop-blur-md flex items-center justify-center z-[200] p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] w-full max-w-[500px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 duration-300">
+            {/* Header */}
+            <div className="relative h-[120px] bg-gradient-to-br from-blue-600 to-blue-800 p-8 flex items-end">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(13,15,24,0.6)_100%)] pointer-events-none opacity-50 mix-blend-overlay"></div>
+              <button onClick={() => setIsModalOpen(false)} className="absolute top-5 right-5 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full p-2 transition-colors z-10">
+                <X className="w-4 h-4" />
+              </button>
+              <div className="relative z-10 flex items-center gap-4 text-white">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-sm">
+                  <UserPlus className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-[24px] font-bold tracking-tight leading-tight">Add Employee</h2>
+                  <p className="text-[13px] font-medium text-blue-100">Onboard a new team member</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Form */}
+            <form onSubmit={handleAddEmployee} className="p-8">
+              <div className="grid grid-cols-1 gap-5 mb-8">
+                <div>
+                  <label className="block text-[12.5px] font-bold text-[var(--app-muted)] mb-2 tracking-tight uppercase">Full Name</label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input 
+                      type="text" required
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 focus:bg-white transition-all" 
+                      placeholder="e.g. Jane Doe"
+                      value={newEmp.name} onChange={e => setNewEmp({...newEmp, name: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[12.5px] font-bold text-[var(--app-muted)] mb-2 tracking-tight uppercase">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input 
+                      type="email" required
+                      className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 focus:bg-white transition-all" 
+                      placeholder="jane@company.com"
+                      value={newEmp.email} onChange={e => setNewEmp({...newEmp, email: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[12.5px] font-bold text-[var(--app-muted)] mb-2 tracking-tight uppercase">Role</label>
+                    <input 
+                      type="text" required
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 focus:bg-white transition-all" 
+                      placeholder="e.g. Designer"
+                      value={newEmp.role} onChange={e => setNewEmp({...newEmp, role: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[12.5px] font-bold text-[var(--app-muted)] mb-2 tracking-tight uppercase">Department</label>
+                    <select 
+                      required
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 focus:bg-white transition-all appearance-none cursor-pointer" 
+                      style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'%236b6b6b\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M7 10l5 5 5-5z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', backgroundSize: '18px' }}
+                      value={newEmp.department} onChange={e => setNewEmp({...newEmp, department: e.target.value})}
+                    >
+                      <option value="" disabled>Select</option>
+                      <option value="Engineering">Engineering</option>
+                      <option value="Design">Design</option>
+                      <option value="Product">Product</option>
+                      <option value="HR">HR</option>
+                      <option value="Marketing">Marketing</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 rounded-xl text-[14px] font-bold bg-white border border-gray-200 text-[var(--app-ink)] hover:bg-gray-50 transition-all">Cancel</button>
+                <button type="submit" className="flex-[2] flex items-center justify-center gap-2 py-3.5 rounded-xl text-[14px] font-bold bg-blue-600 border border-transparent text-white hover:bg-blue-700 shadow-[0_8px_24px_-8px_rgba(37,99,235,0.5)] transition-all">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Add Employee
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

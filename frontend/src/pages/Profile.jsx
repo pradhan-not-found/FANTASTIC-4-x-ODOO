@@ -81,28 +81,56 @@ export default function Profile() {
             </div>
 
             <div className="flex flex-col gap-6">
-              {/* Job Details Widget */}
-              <div className="liquid-card-shell rounded-[18px] p-6 card-elevate bg-gradient-to-b from-blue-50/30 to-transparent">
-                <h3 className="text-[15px] font-bold text-[var(--app-ink)] mb-5 tracking-tight">Employment</h3>
+              {/* Professional ID Card */}
+              <div className="relative group w-full mx-auto" style={{ perspective: '1000px' }}>
+                {/* Lanyard Hole */}
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 border-[3px] border-[rgba(0,0,0,0.15)] rounded-t-xl bg-gradient-to-b from-gray-50 to-gray-200 shadow-sm z-0"></div>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-3 rounded-full bg-[var(--app-canvas)] border-[2px] border-[rgba(0,0,0,0.1)] z-20 shadow-inner"></div>
                 
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <div className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Employee ID</div>
-                    <div className="text-[14px] font-medium text-[var(--app-ink)]">{MY_PROFILE.empId}</div>
-                  </div>
-                  <div>
-                    <div className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Date Joined</div>
-                    <div className="text-[14px] font-medium text-[var(--app-ink)]">{MY_PROFILE.joinDate}</div>
-                  </div>
-                  <div>
-                    <div className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Reporting Manager</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-[10px] font-bold border border-blue-200">
-                        {MY_PROFILE.manager.split(' ').map(n=>n[0]).join('')}
-                      </div>
-                      <div className="text-[14px] font-medium text-[var(--app-ink)]">{MY_PROFILE.manager}</div>
+                {/* Card Container */}
+                <div className="relative bg-white rounded-2xl shadow-[0_24px_48px_-12px_rgba(0,0,0,0.15)] overflow-hidden border border-[rgba(0,0,0,0.08)] z-10 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)]">
+                  {/* Card Header */}
+                  <div className="h-[100px] bg-gradient-to-br from-[#11131e] to-[#25324b] relative">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(13,15,24,0.6)_100%)] pointer-events-none"></div>
+                    <div className="absolute top-5 w-full px-6 flex justify-between items-center">
+                      <img src="/logo.png" className="h-5 brightness-0 invert opacity-90" alt="Company Logo" />
+                      <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest bg-white/10 px-2 py-1 rounded backdrop-blur-md border border-white/10">STAFF</span>
                     </div>
                   </div>
+                  
+                  {/* Photo */}
+                  <div className="absolute top-[52px] left-1/2 -translate-x-1/2 p-1.5 bg-white rounded-2xl shadow-sm">
+                    <div className="w-[84px] h-[84px] bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100 rounded-[12px] flex items-center justify-center text-blue-700 font-bold text-[32px] overflow-hidden shadow-inner">
+                      {MY_PROFILE.name.split(' ').map(n=>n[0]).join('')}
+                    </div>
+                  </div>
+                  
+                  {/* Card Body */}
+                  <div className="pt-[52px] pb-7 px-7 text-center bg-white relative">
+                    <h3 className="text-[20px] font-bold text-[var(--app-ink)] tracking-tight leading-tight mb-1">{MY_PROFILE.name}</h3>
+                    <p className="text-[13px] font-semibold text-blue-600 mb-6">{MY_PROFILE.role}</p>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-left border-t border-[rgba(0,0,0,0.06)] pt-5 mb-6">
+                      <div>
+                        <div className="text-[9.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">ID Number</div>
+                        <div className="text-[13.5px] font-mono font-semibold text-[var(--app-ink)]">{MY_PROFILE.empId}</div>
+                      </div>
+                      <div>
+                        <div className="text-[9.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1">Date Joined</div>
+                        <div className="text-[13.5px] font-semibold text-[var(--app-ink)]">{MY_PROFILE.joinDate}</div>
+                      </div>
+                    </div>
+                    
+                    {/* Fake Barcode */}
+                    <div className="flex justify-center h-10 w-full px-2 opacity-80 overflow-hidden mix-blend-multiply">
+                      {[3,1,4,1,5,9,2,6,5,3,5,8,9,7,9,3,2,3,8,4,6,2,6,4,3,3,8,3,2,7,9,5].map((w, i) => (
+                        <div key={i} className="bg-[#111] h-full" style={{ width: \`\${w * 1.2}px\`, marginRight: \`\${(w % 2 === 0 ? 1 : 2)}px\` }}></div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Subtle holographic overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent opacity-0 group-hover:opacity-100 mix-blend-overlay transition-all duration-[1.5s] pointer-events-none -translate-x-[150%] group-hover:translate-x-[150%]"></div>
                 </div>
               </div>
 
