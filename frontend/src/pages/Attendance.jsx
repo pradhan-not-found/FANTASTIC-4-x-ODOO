@@ -2,7 +2,6 @@ import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { ATTENDANCE_TODAY, EMPLOYEES } from '../data/mockData';
 
-const role = localStorage.getItem('hrms_role') || 'admin';
 
 function AdminAttendance() {
   const presentCount = ATTENDANCE_TODAY.filter(a => a.status === 'present').length;
@@ -154,6 +153,8 @@ function EmployeeAttendance() {
 }
 
 export default function Attendance() {
+  const role = localStorage.getItem('hrms_role') || 'admin';
+
   return (
     <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
       <Sidebar role={role} />

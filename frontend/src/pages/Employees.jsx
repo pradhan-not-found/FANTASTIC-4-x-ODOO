@@ -2,9 +2,10 @@ import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { EMPLOYEES } from '../data/mockData';
 
-const role = localStorage.getItem('hrms_role') || 'admin';
 
 export default function Employees() {
+  const role = localStorage.getItem('hrms_role') || 'admin';
+
   return (
     <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
       <Sidebar role={role} />

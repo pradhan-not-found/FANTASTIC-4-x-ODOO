@@ -6,7 +6,6 @@ import {
   User as UserIcon, CalendarDays, History, ArrowRight, Sun, TrendingUp, CircleDot
 } from 'lucide-react';
 
-const role = localStorage.getItem('hrms_role') || 'admin';
 
 function AdminDashboard() {
   const pending = LEAVE_REQUESTS.filter(l => l.status === 'pending');
@@ -209,6 +208,8 @@ function EmployeeDashboard() {
 }
 
 export default function Dashboard() {
+  const role = localStorage.getItem('hrms_role') || 'admin';
+
   return (
     <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
       <Sidebar role={role} />

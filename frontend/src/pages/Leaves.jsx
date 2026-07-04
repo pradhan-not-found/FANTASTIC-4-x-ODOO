@@ -4,7 +4,6 @@ import Topbar from '../components/Topbar';
 import { LEAVE_REQUESTS, EMPLOYEES } from '../data/mockData';
 import { X } from 'lucide-react';
 
-const role = localStorage.getItem('hrms_role') || 'admin';
 
 function AdminLeaves() {
   const pending = LEAVE_REQUESTS.filter(l => l.status === 'pending');
