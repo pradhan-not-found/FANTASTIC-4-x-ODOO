@@ -1,28 +1,38 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { 
+  LayoutDashboard, 
+  User, 
+  Clock, 
+  CalendarDays, 
+  Wallet, 
+  Users, 
+  LogOut,
+  ShieldAlert
+} from 'lucide-react';
 
 const NAV_EMPLOYEE = [
   { label: 'Main', items: [
-    { to: '/dashboard',  icon: '📊', label: 'Dashboard'      },
-    { to: '/profile',    icon: '👤', label: 'My Profile'     },
-    { to: '/attendance', icon: '🕐', label: 'Attendance'     },
-    { to: '/leaves',     icon: '🌴', label: 'Leave Requests' },
-    { to: '/payroll',    icon: '💰', label: 'Payroll'        },
+    { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard'      },
+    { to: '/profile',    icon: User,            label: 'My Profile'     },
+    { to: '/attendance', icon: Clock,           label: 'Attendance'     },
+    { to: '/leaves',     icon: CalendarDays,    label: 'Leave Requests' },
+    { to: '/payroll',    icon: Wallet,          label: 'Payroll'        },
   ]},
 ];
 
 const NAV_ADMIN = [
   { label: 'Overview', items: [
-    { to: '/dashboard',  icon: '📊', label: 'Dashboard' },
+    { to: '/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
   ]},
   { label: 'HR Management', items: [
-    { to: '/employees',  icon: '👥', label: 'Employees'       },
-    { to: '/attendance', icon: '🕐', label: 'Attendance'      },
-    { to: '/leaves',     icon: '🌴', label: 'Leave Approvals', badge: 2 },
-    { to: '/payroll',    icon: '💰', label: 'Payroll'         },
+    { to: '/employees',  icon: Users,           label: 'Employees'       },
+    { to: '/attendance', icon: Clock,           label: 'Attendance'      },
+    { to: '/leaves',     icon: CalendarDays,    label: 'Leave Approvals', badge: 2 },
+    { to: '/payroll',    icon: Wallet,          label: 'Payroll'         },
   ]},
   { label: 'Account', items: [
-    { to: '/profile',    icon: '👤', label: 'My Profile' },
+    { to: '/profile',    icon: User,            label: 'My Profile' },
   ]},
 ];
 
@@ -37,17 +47,13 @@ export default function Sidebar({ role = 'admin' }) {
   };
 
   return (
-    <aside className="w-64 h-screen fixed left-0 top-0 bg-transparent flex flex-col z-[100] overflow-y-auto">
-      <div className="flex items-center gap-3 px-6 py-5 h-[60px]">
-        <img src="/logo.png" alt="WorkAlign" className="w-8 h-8 object-contain shrink-0" />
-        <div className="flex flex-col leading-[1.1]">
-          <span className="text-[14px] font-bold text-[var(--app-ink)] tracking-tight">WorkAlign</span>
-          <span className="text-[11px] text-[var(--app-muted)]">HR System</span>
-        </div>
+    <aside className="w-64 h-screen fixed left-0 top-0 bg-transparent flex flex-col z-[100] overflow-y-auto border-r border-[rgba(0,0,0,0.06)] bg-white/50 backdrop-blur-md">
+      <div className="flex items-center justify-center py-6 h-[80px]">
+        <img src="/logo.png" alt="Logo" className="h-10 w-auto object-contain shrink-0 grayscale brightness-0 opacity-90" />
       </div>
 
       <div className="px-6 py-4 flex items-center gap-3 bg-transparent">
-        <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center font-bold text-[13px] text-blue-700 shrink-0 border border-blue-200">
+        <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center font-bold text-[13px] text-blue-600 shrink-0 border border-blue-100">
           SP
         </div>
         <div className="flex-1 min-w-0 flex flex-col">
@@ -59,11 +65,12 @@ export default function Sidebar({ role = 'admin' }) {
       <nav className="flex-1 px-4 py-4 overflow-y-auto">
         {nav.map(section => (
           <div key={section.label} className="mb-4">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--app-muted)] px-3 pb-2">
+            <div className="text-[10.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] px-3 pb-2 opacity-80">
               {section.label}
             </div>
             {section.items.map(item => {
               const active = location.pathname === item.to;
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.to}
@@ -75,7 +82,7 @@ export default function Sidebar({ role = 'admin' }) {
                       : "text-[var(--app-muted)] hover:bg-[var(--app-soft)] hover:text-[var(--app-ink)]"
                   )}
                 >
-                  <span className="w-5 h-5 flex items-center justify-center text-[15px] shrink-0">{item.icon}</span>
+                  <Icon className="w-4 h-4 shrink-0 opacity-80" strokeWidth={2.2} />
                   {item.label}
                   {item.badge && (
                     <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[18px] text-center">
@@ -92,9 +99,9 @@ export default function Sidebar({ role = 'admin' }) {
       <div className="p-4">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 w-full text-red-600 hover:bg-red-50"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 w-full text-[var(--app-muted)] hover:text-red-600 hover:bg-red-50"
         >
-          <span className="w-5 h-5 flex items-center justify-center text-[15px] shrink-0">🚪</span>
+          <LogOut className="w-4 h-4 shrink-0 opacity-80" strokeWidth={2.2} />
           Logout
         </button>
       </div>

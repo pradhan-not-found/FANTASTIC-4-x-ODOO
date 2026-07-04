@@ -1,6 +1,10 @@
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { EMPLOYEES, ATTENDANCE_TODAY, LEAVE_REQUESTS, DEPT_STATS } from '../data/mockData';
+import { 
+  Users, CheckCircle2, Clock, Wallet, Check, X, Bell,
+  User as UserIcon, CalendarDays, History, ArrowRight
+} from 'lucide-react';
 
 const role = localStorage.getItem('hrms_role') || 'admin';
 
@@ -15,27 +19,30 @@ function AdminDashboard() {
           <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">Good morning, Souradeep 👋</h1>
           <p className="text-[13.5px] text-[var(--app-muted)]">Here's what's happening across your organization today.</p>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-medium bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all border border-blue-600">
+        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
           + Add Employee
         </button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Total Employees', val: EMPLOYEES.length, sub: '↑ 2 this month', icon: '👥', color: 'text-blue-600', bg: 'bg-blue-50', subColor: 'text-green-600' },
-          { label: 'Present Today', val: present, sub: `↑ ${Math.round((present / EMPLOYEES.length) * 100)}% rate`, icon: '✅', color: 'text-green-600', bg: 'bg-green-50', subColor: 'text-green-600' },
-          { label: 'Pending Leaves', val: pending.length, sub: 'Needs review', icon: '⏳', color: 'text-amber-600', bg: 'bg-amber-50', subColor: 'text-[var(--app-muted)]' },
-          { label: 'Monthly Payroll', val: '₹4.3L', sub: '↑ Processed', icon: '💰', color: 'text-indigo-600', bg: 'bg-indigo-50', subColor: 'text-green-600' }
-        ].map((stat, i) => (
-          <div key={i} className="liquid-card-shell rounded-[18px] p-5 card-elevate group relative overflow-hidden">
-            <div className={`w-10 h-10 rounded-md ${stat.bg} ${stat.color} flex items-center justify-center text-[18px] mb-4`}>
-              {stat.icon}
+          { label: 'Total Employees', val: EMPLOYEES.length, sub: '↑ 2 this month', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', subColor: 'text-green-600' },
+          { label: 'Present Today', val: present, sub: `↑ ${Math.round((present / EMPLOYEES.length) * 100)}% rate`, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', subColor: 'text-green-600' },
+          { label: 'Pending Leaves', val: pending.length, sub: 'Needs review', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', subColor: 'text-[var(--app-muted)]' },
+          { label: 'Monthly Payroll', val: '₹4.3L', sub: '↑ Processed', icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-50', subColor: 'text-green-600' }
+        ].map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div key={i} className="liquid-card-shell rounded-[18px] p-5 card-elevate group relative overflow-hidden">
+              <div className={`w-10 h-10 rounded-md ${stat.bg} ${stat.color} flex items-center justify-center mb-4`}>
+                <Icon className="w-5 h-5" strokeWidth={2.5} />
+              </div>
+              <div className="text-[26px] font-bold text-[var(--app-ink)] leading-none mb-1 tracking-tight">{stat.val}</div>
+              <div className="text-[12.5px] text-[var(--app-muted)] font-medium">{stat.label}</div>
+              <div className={`text-[11.5px] font-medium mt-2 flex items-center gap-1 ${stat.subColor}`}>{stat.sub}</div>
             </div>
-            <div className="text-[26px] font-bold text-[var(--app-ink)] leading-none mb-1 tracking-tight">{stat.val}</div>
-            <div className="text-[12.5px] text-[var(--app-muted)] font-medium">{stat.label}</div>
-            <div className={`text-[11.5px] font-medium mt-2 flex items-center gap-1 ${stat.subColor}`}>{stat.sub}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -46,7 +53,9 @@ function AdminDashboard() {
               <div className="text-[15px] font-bold text-[var(--app-ink)] tracking-tight">Today's Attendance</div>
               <div className="text-[12px] text-[var(--app-muted)] mt-0.5">July 4, 2026</div>
             </div>
-            <a href="/attendance" className="text-[13px] text-blue-600 font-semibold hover:underline">View all →</a>
+            <a href="/attendance" className="text-[13px] text-[var(--app-ink)] font-bold hover:underline inline-flex items-center gap-1">
+              View all <ArrowRight className="w-3 h-3" />
+            </a>
           </div>
           <div className="overflow-x-auto border border-[rgba(0,0,0,0.08)] rounded-xl">
             <table className="w-full text-[13.5px] text-left">
@@ -86,7 +95,9 @@ function AdminDashboard() {
               <div className="text-[15px] font-bold text-[var(--app-ink)] tracking-tight">Leave Approvals</div>
               <div className="text-[12px] text-[var(--app-muted)] mt-0.5">{pending.length} pending review</div>
             </div>
-            <a href="/leaves" className="text-[13px] text-blue-600 font-semibold hover:underline">Manage →</a>
+            <a href="/leaves" className="text-[13px] text-[var(--app-ink)] font-bold hover:underline inline-flex items-center gap-1">
+              Manage <ArrowRight className="w-3 h-3" />
+            </a>
           </div>
           <div className="flex flex-col gap-3">
             {pending.map(l => (
@@ -100,12 +111,16 @@ function AdminDashboard() {
                 </div>
                 <div className="text-[12px] text-[var(--app-muted)] mb-3">{l.from} → {l.to}</div>
                 <div className="flex gap-2">
-                  <button className="px-3 py-1.5 rounded-md text-[12px] font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors">✓ Approve</button>
-                  <button className="px-3 py-1.5 rounded-md text-[12px] font-semibold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition-colors">✕ Reject</button>
+                  <button className="px-3 py-1.5 rounded-md text-[12px] font-bold bg-white text-green-700 border border-[rgba(0,0,0,0.12)] hover:bg-green-50 transition-colors shadow-sm inline-flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" /> Approve
+                  </button>
+                  <button className="px-3 py-1.5 rounded-md text-[12px] font-bold bg-white text-red-700 border border-[rgba(0,0,0,0.12)] hover:bg-red-50 transition-colors shadow-sm inline-flex items-center gap-1">
+                    <X className="w-3.5 h-3.5" /> Reject
+                  </button>
                 </div>
               </div>
             ))}
-            {pending.length === 0 && <div className="py-8 flex flex-col items-center justify-center text-center"><div className="text-3xl mb-3 opacity-40">✅</div><p className="text-[13px] text-[var(--app-muted)]">No pending requests</p></div>}
+            {pending.length === 0 && <div className="py-8 flex flex-col items-center justify-center text-center"><CheckCircle2 className="w-8 h-8 text-[var(--app-muted)] opacity-50 mb-3" /><p className="text-[13px] text-[var(--app-muted)] font-medium">No pending requests</p></div>}
           </div>
         </div>
       </div>
@@ -140,46 +155,52 @@ function EmployeeDashboard() {
           <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">Good morning, Souradeep 👋</h1>
           <p className="text-[13.5px] text-[var(--app-muted)]">You have 2 notifications today.</p>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-medium bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all border border-blue-600">
+        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
           Request Leave
         </button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Days Present (June)', val: '22', sub: '↑ 95.6% attendance', icon: '✅', color: 'text-green-600', bg: 'bg-green-50', subColor: 'text-green-600' },
-          { label: 'Leave Balance', val: '8', sub: '3 Paid · 2 Sick · 3 Unpaid', icon: '🌴', color: 'text-indigo-600', bg: 'bg-indigo-50', subColor: 'text-[var(--app-muted)]' },
-          { label: 'Net Salary (June)', val: '₹90.3K', sub: '↑ Credited', icon: '💰', color: 'text-blue-600', bg: 'bg-blue-50', subColor: 'text-green-600' },
-          { label: 'Today\'s Check-In', val: '09:05', sub: 'Active now', icon: '⏰', color: 'text-amber-600', bg: 'bg-amber-50', subColor: 'text-green-600' }
-        ].map((stat, i) => (
-          <div key={i} className="liquid-card-shell rounded-[18px] p-5 card-elevate group">
-            <div className={`w-10 h-10 rounded-md ${stat.bg} ${stat.color} flex items-center justify-center text-[18px] mb-4`}>
-              {stat.icon}
+          { label: 'Days Present (June)', val: '22', sub: '↑ 95.6% attendance', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50', subColor: 'text-green-600' },
+          { label: 'Leave Balance', val: '8', sub: '3 Paid · 2 Sick · 3 Unpaid', icon: CalendarDays, color: 'text-indigo-600', bg: 'bg-indigo-50', subColor: 'text-[var(--app-muted)]' },
+          { label: 'Net Salary (June)', val: '₹90.3K', sub: '↑ Credited', icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50', subColor: 'text-green-600' },
+          { label: 'Today\'s Check-In', val: '09:05', sub: 'Active now', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', subColor: 'text-green-600' }
+        ].map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div key={i} className="liquid-card-shell rounded-[18px] p-5 card-elevate group">
+              <div className={`w-10 h-10 rounded-md ${stat.bg} ${stat.color} flex items-center justify-center mb-4`}>
+                <Icon className="w-5 h-5" strokeWidth={2.5} />
+              </div>
+              <div className="text-[26px] font-bold text-[var(--app-ink)] leading-none mb-1 tracking-tight">{stat.val}</div>
+              <div className="text-[12.5px] text-[var(--app-muted)] font-medium">{stat.label}</div>
+              <div className={`text-[11.5px] font-medium mt-2 flex items-center gap-1 ${stat.subColor}`}>{stat.sub}</div>
             </div>
-            <div className="text-[26px] font-bold text-[var(--app-ink)] leading-none mb-1 tracking-tight">{stat.val}</div>
-            <div className="text-[12.5px] text-[var(--app-muted)] font-medium">{stat.label}</div>
-            <div className={`text-[11.5px] font-medium mt-2 flex items-center gap-1 ${stat.subColor}`}>{stat.sub}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: '👤', label: 'My Profile',    desc: 'View & update your info',     href: '/profile',    color: 'text-blue-600', bg: 'bg-blue-50' },
-          { icon: '🕐', label: 'Attendance',     desc: 'Check your logs & hours',     href: '/attendance', color: 'text-green-600', bg: 'bg-green-50' },
-          { icon: '🌴', label: 'Leave Requests', desc: 'Apply & track your leaves',   href: '/leaves',     color: 'text-amber-600', bg: 'bg-amber-50' },
-          { icon: '💰', label: 'Payroll',        desc: 'View your salary breakdown',  href: '/payroll',    color: 'text-indigo-600', bg: 'bg-indigo-50' },
-        ].map(c => (
-          <a key={c.label} href={c.href} className="liquid-card-shell rounded-[18px] p-4 flex items-center gap-4 card-elevate group no-underline text-inherit cursor-pointer">
-            <div className={`w-12 h-12 rounded-xl ${c.bg} ${c.color} flex items-center justify-center text-[22px] shrink-0`}>
-              {c.icon}
-            </div>
-            <div>
-              <div className="font-bold text-[14px] text-[var(--app-ink)] mb-0.5 tracking-tight group-hover:text-blue-600 transition-colors">{c.label}</div>
-              <div className="text-[12.5px] text-[var(--app-muted)]">{c.desc}</div>
-            </div>
-          </a>
-        ))}
+          { icon: UserIcon,     label: 'My Profile',    desc: 'View & update your info',     href: '/profile',    color: 'text-blue-600', bg: 'bg-blue-50' },
+          { icon: History,      label: 'Attendance',     desc: 'Check your logs & hours',     href: '/attendance', color: 'text-green-600', bg: 'bg-green-50' },
+          { icon: CalendarDays, label: 'Leave Requests', desc: 'Apply & track your leaves',   href: '/leaves',     color: 'text-amber-600', bg: 'bg-amber-50' },
+          { icon: Wallet,       label: 'Payroll',        desc: 'View your salary breakdown',  href: '/payroll',    color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        ].map(c => {
+          const Icon = c.icon;
+          return (
+            <a key={c.label} href={c.href} className="liquid-card-shell rounded-[18px] p-4 flex items-center gap-4 card-elevate group no-underline text-inherit cursor-pointer">
+              <div className={`w-12 h-12 rounded-xl ${c.bg} ${c.color} flex items-center justify-center shrink-0`}>
+                <Icon className="w-6 h-6" strokeWidth={2.5} />
+              </div>
+              <div>
+                <div className="font-bold text-[14px] text-[var(--app-ink)] mb-0.5 tracking-tight group-hover:text-blue-600 transition-colors">{c.label}</div>
+                <div className="text-[12.5px] text-[var(--app-muted)]">{c.desc}</div>
+              </div>
+            </a>
+          );
+        })}
       </div>
     </div>
   );
