@@ -1,13 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Topbar from '../components/Topbar';
 import { EMPLOYEES } from '../data/mockData';
 import { X, UserPlus, Mail, CheckCircle2, User, Plane, Circle } from 'lucide-react';
 
 export default function Employees() {
   const role = localStorage.getItem('hrms_role') || 'admin';
-  const [employeesList, setEmployeesList] = useState(EMPLOYEES);
+  const [employeesList, setEmployeesList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newEmp, setNewEmp] = useState({ name: '', email: '', role: '', department: '' });
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/employees');
+      if (res.ok) {
+        const data = await res.json();
+        // Backend returns oldest first generally, or based on db. We can reverse it to show newest first.
+        setEmployeesList(data.reverse());
+      }
+    } catch (err) {
+      console.error('Failed to fetch employees:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
 
   const handleAddEmployee = (e) => {
     e.preventDefault();
@@ -38,6 +55,7 @@ export default function Employees() {
       id: generatedId,
       name: newEmp.name,
       role: newEmp.role,
+      position: newEmp.role,
       department: newEmp.department,
       email: newEmp.email,
       password: generatedPassword,
@@ -45,11 +63,26 @@ export default function Employees() {
       status: 'active'
     };
     
-    setEmployeesList([emp, ...employeesList]);
-    setIsModalOpen(false);
-    setNewEmp({ name: '', email: '', role: '', department: '' });
-    
-    alert(`Employee added successfully!\n\nLogin ID: ${generatedId}\nPassword: ${generatedPassword}\n\nPlease share these credentials with the employee.`);
+    try {
+      const res = await fetch('http://localhost:3000/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emp)
+      });
+      
+      if (res.ok) {
+        setEmployeesList([emp, ...employeesList]);
+        setIsModalOpen(false);
+        setNewEmp({ name: '', email: '', role: '', department: '' });
+        alert(`Employee added successfully!\n\nLogin ID: ${generatedId}\nPassword: ${generatedPassword}\n\nPlease share these credentials with the employee.`);
+      } else {
+        const errorData = await res.json();
+        alert(`Failed to add employee: ${errorData.error}`);
+      }
+    } catch (err) {
+      console.error('Error adding employee:', err);
+      alert('Network error while adding employee.');
+    }
   };
 
   return (

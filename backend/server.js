@@ -53,9 +53,9 @@ app.get('/api/employees', (req, res) => {
 });
 
 app.post('/api/employees', (req, res) => {
-    const { id, name, email, department, position, status, avatar, joinDate, salary, phone } = req.body;
-    const stmt = db.prepare('INSERT INTO employees (id, name, email, department, position, status, avatar, joinDate, salary, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    stmt.run([id, name, email, department, position, status, avatar, joinDate, salary, phone], function(err) {
+    const { id, name, email, password, role, department, position, status, avatar, joinDate, salary, phone } = req.body;
+    const stmt = db.prepare('INSERT INTO employees (id, name, email, password, role, department, position, status, avatar, joinDate, salary, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    stmt.run([id, name, email, password, role, department, position, status, avatar, joinDate, salary, phone], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.status(201).json({ message: 'Employee added successfully', id });
     });
