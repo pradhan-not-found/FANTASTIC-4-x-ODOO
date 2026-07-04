@@ -1,10 +1,30 @@
+import { useRef } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { MY_PROFILE } from '../data/mockData';
-
+import html2canvas from 'html2canvas';
 
 export default function Profile() {
   const role = localStorage.getItem('hrms_role') || 'admin';
+  const idCardRef = useRef(null);
+
+  const handleDownload = async () => {
+    if (!idCardRef.current) return;
+    try {
+      const canvas = await html2canvas(idCardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `${MY_PROFILE.name.replace(/\s+/g, '_')}_ID_Card.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Failed to download ID card", err);
+    }
+  };
   return (
     <div className="flex min-h-screen bg-[var(--app-canvas)] overflow-hidden">
       <Sidebar role={role} />
@@ -104,8 +124,9 @@ export default function Profile() {
 
             <div className="flex flex-col gap-6">
               {/* Professional ID Card */}
-              <div className="relative group w-full mx-auto" style={{ perspective: '1000px' }}>
-                {/* Lanyard Hole */}
+              <div>
+                <div ref={idCardRef} className="relative group w-full mx-auto" style={{ perspective: '1000px' }}>
+                  {/* Lanyard Hole */}
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-6 border-[3px] border-[rgba(0,0,0,0.15)] rounded-t-xl bg-gradient-to-b from-gray-50 to-gray-200 shadow-sm z-0"></div>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-6 h-3 rounded-full bg-[var(--app-canvas)] border-[2px] border-[rgba(0,0,0,0.1)] z-20 shadow-inner"></div>
                 
@@ -121,8 +142,8 @@ export default function Profile() {
                   </div>
                   
                   {/* Photo */}
-                  <div className="absolute top-[52px] left-1/2 -translate-x-1/2 p-1.5 bg-white rounded-2xl shadow-sm">
-                    <div className="w-[84px] h-[84px] bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100 rounded-[12px] flex items-center justify-center text-blue-700 font-bold text-[32px] overflow-hidden shadow-inner">
+                  <div className="absolute top-[52px] left-1/2 -translate-x-1/2 p-1.5 bg-white rounded-2xl shadow-sm z-20">
+                    <div className="w-[80px] h-[80px] bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100 rounded-[12px] flex items-center justify-center text-blue-700 font-bold text-[28px] tracking-tight overflow-hidden shadow-inner">
                       {MY_PROFILE.name.split(' ').map(n=>n[0]).join('')}
                     </div>
                   </div>
@@ -155,7 +176,16 @@ export default function Profile() {
                   <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/40 to-transparent opacity-0 group-hover:opacity-100 mix-blend-overlay transition-all duration-[1.5s] pointer-events-none -translate-x-[150%] group-hover:translate-x-[150%]"></div>
                 </div>
               </div>
+            </div>
 
+            {/* Download Button */}
+              <button 
+                onClick={handleDownload}
+                className="mt-2 w-full py-3.5 bg-white border border-[rgba(0,0,0,0.12)] rounded-2xl text-[14px] font-bold text-[var(--app-ink)] hover:bg-[var(--app-soft)] flex items-center justify-center gap-2 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 group"
+              >
+                <svg className="text-[var(--app-muted)] group-hover:text-blue-600 transition-colors" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download ID Card
+              </button>
             </div>
           </div>
         </div>
