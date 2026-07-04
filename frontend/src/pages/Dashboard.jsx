@@ -1,5 +1,5 @@
 import Topbar from '../components/Topbar';
-import { EMPLOYEES, ATTENDANCE_TODAY, LEAVE_REQUESTS, DEPT_STATS } from '../data/mockData';
+import { EMPLOYEES, ATTENDANCE_TODAY, LEAVE_REQUESTS, DEPT_STATS, MY_PROFILE } from '../data/mockData';
 import { 
   Users, CheckCircle2, Clock, Wallet, Check, X, Bell,
   User as UserIcon, CalendarDays, History, ArrowRight, Sun, TrendingUp, CircleDot
@@ -9,6 +9,7 @@ import {
 function AdminDashboard() {
   const pending = LEAVE_REQUESTS.filter(l => l.status === 'pending');
   const present = ATTENDANCE_TODAY.filter(a => a.status === 'present').length;
+  const firstName = MY_PROFILE.name ? MY_PROFILE.name.split(' ')[0] : 'User';
 
   return (
     <div className="flex-1 p-8 max-w-[1300px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -16,7 +17,7 @@ function AdminDashboard() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
-            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, Souradeep</h1>
+            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, {firstName}</h1>
           </div>
           <p className="text-[13.5px] text-[var(--app-muted)]">Here's what's happening across your organization today.</p>
         </div>
@@ -149,13 +150,15 @@ function AdminDashboard() {
 }
 
 function EmployeeDashboard() {
+  const firstName = MY_PROFILE.name ? MY_PROFILE.name.split(' ')[0] : 'User';
+
   return (
     <div className="flex-1 p-8 max-w-[1300px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Sun className="w-6 h-6 text-amber-500" strokeWidth={2.5} />
-            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, Souradeep</h1>
+            <h1 className="text-[22px] font-bold text-[var(--app-ink)] tracking-tight">Good morning, {firstName}</h1>
           </div>
           <p className="text-[13.5px] text-[var(--app-muted)]">You have 2 notifications today.</p>
         </div>
