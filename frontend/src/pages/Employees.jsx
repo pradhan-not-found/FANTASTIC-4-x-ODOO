@@ -13,12 +13,34 @@ export default function Employees() {
     e.preventDefault();
     if (!newEmp.name || !newEmp.email || !newEmp.role || !newEmp.department) return;
     
+    const nameParts = newEmp.name.trim().split(/\s+/);
+    const firstName = nameParts[0] || 'XX';
+    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : 'XX';
+    
+    const first2First = firstName.substring(0, 2).toUpperCase().padEnd(2, 'X');
+    const first2Last = lastName.substring(0, 2).toUpperCase().padEnd(2, 'X');
+    
+    const currentYear = new Date().getFullYear();
+    const companyInitials = "OI";
+    
+    // Filter employees by year to get serial number
+    const employeesThisYear = employeesList.filter(e => {
+       const yearPart = e.id.substring(6, 10);
+       return yearPart === currentYear.toString();
+    });
+    const serialNumber = (employeesThisYear.length + 1).toString().padStart(4, '0');
+    
+    const generatedId = `${companyInitials}${first2First}${first2Last}${currentYear}${serialNumber}`;
+    // Simple secure auto-generated password
+    const generatedPassword = Math.random().toString(36).slice(-6) + "A1!";
+
     const emp = {
-      id: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: generatedId,
       name: newEmp.name,
       role: newEmp.role,
       department: newEmp.department,
       email: newEmp.email,
+      password: generatedPassword,
       joinDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
       status: 'active'
     };
@@ -26,6 +48,8 @@ export default function Employees() {
     setEmployeesList([emp, ...employeesList]);
     setIsModalOpen(false);
     setNewEmp({ name: '', email: '', role: '', department: '' });
+    
+    alert(`Employee added successfully!\n\nLogin ID: ${generatedId}\nPassword: ${generatedPassword}\n\nPlease share these credentials with the employee.`);
   };
 
   return (
