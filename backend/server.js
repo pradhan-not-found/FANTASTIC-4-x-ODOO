@@ -294,15 +294,18 @@ app.post('/api/payroll/run', (req, res) => {
                     const lopDays = Math.max(0, totalWorkingDays - presentDays);
                     const lopDeduction = Math.round(lopDays * perDaySalary);
 
-                    const basic = Math.round(monthlySalary * 0.5);
-                    const hra = Math.round(monthlySalary * 0.3);
-                    const special = Math.round(monthlySalary * 0.2);
+                    const basic = Math.round(monthlySalary * 0.4);
+                    const hra = Math.round(basic * 0.4);
+                    const bonus = Math.round(monthlySalary * 0.08);
+                    const lta = Math.round(monthlySalary * 0.05);
+                    const food = Math.round(monthlySalary * 0.03);
+                    const special = bonus + lta + food; // Maps to 'da' column
                     const allowances = hra + special;
 
                     const pf = Math.round(basic * 0.12);
                     const pt = 200;
-                    const tds = Math.round((monthlySalary - 250000 / 12) * 0.1);
-                    const totalDeductions = pf + pt + Math.max(0, tds) + lopDeduction;
+                    const tds = Math.max(0, Math.round((monthlySalary - 250000 / 12) * 0.1));
+                    const totalDeductions = pf + pt + tds + lopDeduction;
                     const net = Math.max(0, basic + allowances - totalDeductions);
 
                     // Check if payroll already exists for this emp+month
