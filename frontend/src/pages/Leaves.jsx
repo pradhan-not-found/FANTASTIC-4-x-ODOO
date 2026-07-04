@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Topbar from '../components/Topbar';
-import { LEAVE_REQUESTS, EMPLOYEES, CALENDAR_STATUS, MY_PROFILE, MY_LEAVES, initData } from '../data/mockData';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function InteractiveCalendar({ from, to, setFrom, setTo }) {
@@ -8,7 +7,6 @@ function InteractiveCalendar({ from, to, setFrom, setTo }) {
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   const handleDateClick = (day) => {
-    // Basic date formatting for UI purposes (July 2026)
     const dateStr = `2026-07-${String(day).padStart(2, '0')}`;
     
     if (!from || (from && to)) {
@@ -49,10 +47,8 @@ function InteractiveCalendar({ from, to, setFrom, setTo }) {
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1 text-center">
-        {/* Offset for Wed start of July 2026 */}
         <div className="p-2"></div><div className="p-2"></div><div className="p-2"></div>
         {days.map(day => {
-          const status = CALENDAR_STATUS[day];
           const selected = isSelected(day);
           const isEndpoint = `2026-07-${String(day).padStart(2, '0')}` === from || `2026-07-${String(day).padStart(2, '0')}` === to;
           
@@ -67,30 +63,35 @@ function InteractiveCalendar({ from, to, setFrom, setTo }) {
               }`}
             >
               {day}
-              {status && !selected && (
-                <div className={`absolute bottom-1 w-1 h-1 rounded-full ${
-                  status === 'present' ? 'bg-green-500' :
-                  status === 'absent' ? 'bg-red-500' :
-                  status === 'half' ? 'bg-amber-500' : 'bg-blue-400'
-                }`}></div>
-              )}
             </div>
           );
         })}
-      </div>
-      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)] px-2 justify-center">
-         <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500"></div><span className="text-[10px] text-[var(--app-muted)] font-semibold uppercase">Present</span></div>
-         <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500"></div><span className="text-[10px] text-[var(--app-muted)] font-semibold uppercase">Absent</span></div>
-         <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div><span className="text-[10px] text-[var(--app-muted)] font-semibold uppercase">Leave</span></div>
       </div>
     </div>
   );
 }
 
-
 function AdminLeaves() {
-  const [requests, setRequests] = useState(LEAVE_REQUESTS);
+  const [requests, setRequests] = useState([]);
+  const [employees, setEmployees] = useState([]);
   
+  const fetchLeaves = async () => {
+    try {
+      const [leavesRes, empRes] = await Promise.all([
+        fetch('http://localhost:3000/api/leaves'),
+        fetch('http://localhost:3000/api/employees')
+      ]);
+      if (leavesRes.ok) setRequests(await leavesRes.json());
+      if (empRes.ok) setEmployees(await empRes.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaves();
+  }, []);
+
   const pending = requests.filter(l => l.status === 'Pending' || l.status === 'pending');
   const history = requests.filter(l => l.status !== 'Pending' && l.status !== 'pending');
 
@@ -102,9 +103,7 @@ function AdminLeaves() {
         body: JSON.stringify({ status })
       });
       if (response.ok) {
-        await initData();
-        setRequests(LEAVE_REQUESTS); // re-fetch from mockData
-        window.location.reload();
+        fetchLeaves();
       }
     } catch (err) {
       console.error(err);
@@ -129,14 +128,16 @@ function AdminLeaves() {
               <span className="bg-amber-100 text-amber-700 text-[11px] font-bold px-2 py-0.5 rounded-full">{pending.length}</span>
             </h2>
             <div className="flex flex-col gap-4">
-              {pending.map(l => (
+              {pending.map(l => {
+                const emp = employees.find(e => e.id === l.empId);
+                return (
                 <div key={l.id} className="p-4 rounded-xl border border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.02)] flex flex-wrap gap-4 justify-between items-center transition-all hover:bg-[rgba(0,0,0,0.03)]">
                   <div className="flex gap-4 items-center">
                     <div className="w-10 h-10 rounded-full bg-white border border-[rgba(0,0,0,0.08)] flex items-center justify-center font-bold text-[13px] text-blue-700 shadow-sm shrink-0">
-                      {l.empId ? l.empId.substring(0,3) : 'EMP'}
+                      {emp ? emp.name.substring(0,2).toUpperCase() : l.empId.substring(0,3)}
                     </div>
                     <div>
-                      <div className="font-bold text-[14px] text-[var(--app-ink)]">{l.empId}</div>
+                      <div className="font-bold text-[14px] text-[var(--app-ink)]">{emp ? emp.name : l.empId}</div>
                       <div className="text-[12.5px] text-[var(--app-muted)] mt-0.5">{l.type} • {l.days} day{l.days > 1 ? 's' : ''}</div>
                       <div className="text-[11.5px] text-[var(--app-muted)] mt-1 font-mono">{l.fromDate} to {l.toDate}</div>
                     </div>
@@ -146,7 +147,7 @@ function AdminLeaves() {
                     <button onClick={() => handleUpdateStatus(l.id, 'Approved')} className="px-4 py-2 rounded-lg text-[12.5px] font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">Approve</button>
                   </div>
                 </div>
-              ))}
+              )})}
               {pending.length === 0 && (
                 <div className="text-center py-8 text-[var(--app-muted)] text-[13.5px]">All caught up! No pending requests.</div>
               )}
@@ -165,9 +166,11 @@ function AdminLeaves() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-                  {history.map(l => (
+                  {history.map(l => {
+                    const emp = employees.find(e => e.id === l.empId);
+                    return (
                     <tr key={l.id}>
-                      <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{l.empId}</td>
+                      <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{emp ? emp.name : l.empId}</td>
                       <td className="py-3.5 px-4">
                         <div className="font-medium text-[var(--app-ink)]">{l.type}</div>
                         <div className="text-[11.5px] text-[var(--app-muted)] font-mono">{l.fromDate} - {l.toDate}</div>
@@ -180,7 +183,8 @@ function AdminLeaves() {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                  )})}
+                  {history.length === 0 && <tr><td colSpan="3" className="py-4 text-center text-[13px] text-[var(--app-muted)]">No leave history</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -191,20 +195,20 @@ function AdminLeaves() {
           <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
             <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">Who's Away</h2>
             <div className="flex flex-col gap-4">
-              {[
-                { name: 'Priya Sharma', dates: 'Jul 2 - Jul 5', type: 'Paid Leave', avatar: 'PS' },
-                { name: 'Rahul Desai', dates: 'Jul 4', type: 'Sick Leave', avatar: 'RD' }
-              ].map(emp => (
-                <div key={emp.name} className="flex items-center gap-3">
+              {history.filter(l => l.status === 'Approved').slice(0, 5).map(l => {
+                const emp = employees.find(e => e.id === l.empId);
+                return (
+                <div key={l.id} className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center font-bold text-[11px] text-blue-700 shrink-0">
-                    {emp.avatar}
+                    {emp ? emp.name.substring(0,2).toUpperCase() : 'EMP'}
                   </div>
                   <div>
-                    <div className="text-[13.5px] font-semibold text-[var(--app-ink)]">{emp.name}</div>
-                    <div className="text-[11.5px] text-[var(--app-muted)]">{emp.type} • {emp.dates}</div>
+                    <div className="text-[13.5px] font-semibold text-[var(--app-ink)]">{emp ? emp.name : l.empId}</div>
+                    <div className="text-[11.5px] text-[var(--app-muted)]">{l.type} • {l.fromDate}</div>
                   </div>
                 </div>
-              ))}
+              )})}
+              {history.filter(l => l.status === 'Approved').length === 0 && <div className="text-[13px] text-[var(--app-muted)]">No one is currently away.</div>}
             </div>
           </div>
         </div>
@@ -215,18 +219,33 @@ function AdminLeaves() {
 
 function EmployeeLeaves() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [requests, setRequests] = useState(MY_LEAVES);
+  const [requests, setRequests] = useState([]);
   
   const [type, setType] = useState('Paid Leave');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [reason, setReason] = useState('');
 
+  const user = JSON.parse(localStorage.getItem('hrms_user') || '{}');
+
+  const fetchLeaves = async () => {
+    if (!user.id) return;
+    try {
+      const res = await fetch(`http://localhost:3000/api/leaves/${user.id}`);
+      if (res.ok) setRequests(await res.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaves();
+  }, [user.id]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!from || !to) return;
     
-    // Calculate simple days difference
     const fromDate = new Date(from);
     const toDate = new Date(to);
     const diffTime = Math.abs(toDate - fromDate);
@@ -237,7 +256,7 @@ function EmployeeLeaves() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          empId: MY_PROFILE.id || 'EMP-001',
+          empId: user.id,
           type,
           fromDate: from,
           toDate: to,
@@ -247,20 +266,24 @@ function EmployeeLeaves() {
       });
 
       if (response.ok) {
-        await initData();
-        setRequests(MY_LEAVES); // from mockData
+        fetchLeaves();
         setModalOpen(false);
         setType('Paid Leave');
         setFrom('');
         setTo('');
         setReason('');
-        window.location.reload();
+      } else {
+        alert('Failed to submit request');
       }
     } catch (err) {
       console.error(err);
       alert('Failed to submit request');
     }
   };
+
+  const approvedLeaves = requests.filter(l => l.status === 'Approved').reduce((acc, l) => acc + (l.days || 1), 0);
+  const sickLeaves = requests.filter(l => l.status === 'Approved' && l.type === 'Sick Leave').reduce((acc, l) => acc + (l.days || 1), 0);
+  const casualLeaves = requests.filter(l => l.status === 'Approved' && l.type === 'Casual Leave').reduce((acc, l) => acc + (l.days || 1), 0);
 
   return (
     <div className="flex-1 p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
@@ -276,10 +299,10 @@ function EmployeeLeaves() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Annual Paid', val: '12 / 15', sub: '3 days used' },
-          { label: 'Sick Leave', val: '4 / 7', sub: '3 days used' },
-          { label: 'Casual Leave', val: '2 / 5', sub: '3 days used' },
-          { label: 'Pending', val: requests.filter(r => r.status === 'pending').length.toString(), sub: 'Awaiting approval' }
+          { label: 'Annual Paid', val: `${15 - approvedLeaves} / 15`, sub: `${approvedLeaves} days used` },
+          { label: 'Sick Leave', val: `${7 - sickLeaves} / 7`, sub: `${sickLeaves} days used` },
+          { label: 'Casual Leave', val: `${5 - casualLeaves} / 5`, sub: `${casualLeaves} days used` },
+          { label: 'Pending', val: requests.filter(r => r.status === 'Pending').length.toString(), sub: 'Awaiting approval' }
         ].map((stat, i) => (
           <div key={i} className="liquid-card-shell rounded-[18px] p-5 card-elevate">
             <div className="text-[12.5px] font-semibold uppercase tracking-widest text-[var(--app-muted)] mb-2">{stat.label}</div>
@@ -298,118 +321,130 @@ function EmployeeLeaves() {
                 <thead className="bg-[rgba(0,0,0,0.02)] border-b border-[rgba(0,0,0,0.06)]">
                   <tr>
                     <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Type</th>
-                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Duration</th>
-                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Reason</th>
+                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Dates</th>
+                    <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Days</th>
                     <th className="py-3 px-4 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-                  {requests.map(l => (
-                    <tr key={l.id}>
-                      <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{l.type}</td>
-                      <td className="py-3.5 px-4">
-                        <div className="font-mono text-[var(--app-ink)] text-[12.5px]">{l.from} to {l.to}</div>
-                        <div className="text-[11.5px] text-[var(--app-muted)]">{l.days} day{l.days > 1 ? 's' : ''}</div>
-                      </td>
-                      <td className="py-3.5 px-4 text-[var(--app-muted)] text-[12.5px] max-w-[200px] truncate">{l.reason}</td>
+                  {requests.map(r => (
+                    <tr key={r.id} className="hover:bg-[rgba(0,0,0,0.01)] transition-colors">
+                      <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{r.type}</td>
+                      <td className="py-3.5 px-4 font-mono text-[var(--app-muted)] text-[12.5px]">{r.fromDate} to {r.toDate}</td>
+                      <td className="py-3.5 px-4 font-mono text-[var(--app-ink)] font-semibold">{r.days}</td>
                       <td className="py-3.5 px-4">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border ${
-                          l.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 
-                          l.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
-                          'bg-red-50 text-red-700 border-red-200'
+                          (r.status === 'approved' || r.status === 'Approved') ? 'bg-green-50 text-green-700 border-green-200' :
+                          (r.status === 'rejected' || r.status === 'Rejected') ? 'bg-red-50 text-red-700 border-red-200' :
+                          'bg-amber-50 text-amber-700 border-amber-200'
                         }`}>
-                          {l.status}
+                          {r.status}
                         </span>
                       </td>
                     </tr>
                   ))}
-                  {requests.length === 0 && (
-                    <tr><td colSpan="4" className="text-center py-6 text-[var(--app-muted)] text-[13.5px]">No requests found.</td></tr>
-                  )}
+                  {requests.length === 0 && <tr><td colSpan="4" className="py-8 text-center text-[13px] text-[var(--app-muted)]">No leave requests found.</td></tr>}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
-        
-        <div>
-          <div className="liquid-card-shell rounded-[18px] p-6 card-elevate h-full">
-            <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">Upcoming Holidays</h2>
-            <div className="flex flex-col gap-4">
-              {[
-                { name: 'Independence Day', date: 'Aug 15, 2026', day: 'Saturday' },
-                { name: 'Ganesh Chaturthi', date: 'Sep 14, 2026', day: 'Monday' },
-                { name: 'Gandhi Jayanti', date: 'Oct 02, 2026', day: 'Friday' },
-                { name: 'Diwali', date: 'Nov 08, 2026', day: 'Sunday' }
-              ].map((h, i) => (
-                <div key={i} className="flex gap-4 items-center p-3 rounded-xl hover:bg-[rgba(0,0,0,0.02)] transition-colors border border-transparent hover:border-[rgba(0,0,0,0.05)]">
-                  <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-xl flex flex-col items-center justify-center text-blue-700 shrink-0 shadow-sm">
-                     <span className="text-[10px] font-bold uppercase">{h.date.split(' ')[0]}</span>
-                     <span className="text-[16px] font-black leading-none">{h.date.split(' ')[1].replace(',', '')}</span>
-                  </div>
-                  <div>
-                    <div className="font-bold text-[14px] text-[var(--app-ink)]">{h.name}</div>
-                    <div className="text-[12px] text-[var(--app-muted)]">{h.day}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+
+        <div className="flex flex-col gap-6">
+          <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
+             <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight">Upcoming Holidays</h2>
+             <div className="flex flex-col gap-3">
+               <div className="flex justify-between items-center p-3 rounded-lg bg-[rgba(0,0,0,0.02)] border border-[rgba(0,0,0,0.04)]">
+                 <div className="font-semibold text-[13px] text-[var(--app-ink)]">Independence Day</div>
+                 <div className="text-[12px] text-[var(--app-muted)] font-mono">Aug 15</div>
+               </div>
+               <div className="flex justify-between items-center p-3 rounded-lg bg-[rgba(0,0,0,0.02)] border border-[rgba(0,0,0,0.04)]">
+                 <div className="font-semibold text-[13px] text-[var(--app-ink)]">Gandhi Jayanti</div>
+                 <div className="text-[12px] text-[var(--app-muted)] font-mono">Oct 2</div>
+               </div>
+               <div className="flex justify-between items-center p-3 rounded-lg bg-[rgba(0,0,0,0.02)] border border-[rgba(0,0,0,0.04)]">
+                 <div className="font-semibold text-[13px] text-[var(--app-ink)]">Diwali</div>
+                 <div className="text-[12px] text-[var(--app-muted)] font-mono">Nov 12</div>
+               </div>
+             </div>
           </div>
         </div>
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-[rgba(0,0,0,0.4)] backdrop-blur-sm flex items-center justify-center z-[200] p-4">
-          <div className="bg-white rounded-[20px] p-6 w-full max-w-[480px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.2)] animate-in zoom-in-95 duration-200 border border-[rgba(0,0,0,0.08)]">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-[18px] font-bold text-[var(--app-ink)] tracking-tight">New Request</h2>
-              <button onClick={() => setModalOpen(false)} className="text-[var(--app-muted)] hover:text-[var(--app-ink)] p-1">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] backdrop-blur-md flex items-center justify-center z-[200] p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] w-full max-w-[440px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between p-6 border-b border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.01)]">
+              <div>
+                <h2 className="text-[18px] font-bold tracking-tight text-[var(--app-ink)]">Request Leave</h2>
+                <p className="text-[13px] text-[var(--app-muted)] mt-0.5">Select dates and leave type.</p>
+              </div>
+              <button onClick={() => setModalOpen(false)} className="text-[var(--app-muted)] hover:text-[var(--app-ink)] bg-[rgba(0,0,0,0.04)] hover:bg-[rgba(0,0,0,0.08)] rounded-full p-2 transition-colors">
+                <X className="w-4 h-4" />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">Leave Type</label>
-                <select 
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all bg-white cursor-pointer appearance-none" 
-                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'%236b6b6b\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M7 10l5 5 5-5z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '18px' }}
-                >
-                  <option>Paid Leave</option>
-                  <option>Sick Leave</option>
-                  <option>Casual Leave</option>
-                  <option>Unpaid Leave</option>
-                </select>
-              </div>
+            <form onSubmit={handleSubmit} className="p-6">
+              <InteractiveCalendar from={from} to={to} setFrom={setFrom} setTo={setTo} />
 
-              <div className="mb-4">
-                <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">Select Date Range</label>
-                <InteractiveCalendar from={from} to={to} setFrom={setFrom} setTo={setTo} />
+              <div className="space-y-4 mb-6 mt-4 border-t border-[rgba(0,0,0,0.06)] pt-4">
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5">Leave Type</label>
+                  <select 
+                    value={type} 
+                    onChange={e => setType(e.target.value)} 
+                    className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-xl text-[14px] bg-white text-[var(--app-ink)] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm font-medium cursor-pointer"
+                  >
+                    <option>Paid Leave</option>
+                    <option>Sick Leave</option>
+                    <option>Casual Leave</option>
+                    <option>Unpaid Leave</option>
+                  </select>
+                </div>
                 
-                {from && (
-                  <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-blue-50 text-blue-700 text-[12.5px] font-semibold rounded-lg border border-blue-100">
-                    <span>{from}</span>
-                    {to && <span>→ {to}</span>}
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="block text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5">From</label>
+                    <input 
+                      type="text" 
+                      value={from}
+                      readOnly
+                      placeholder="Select on calendar"
+                      className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-xl text-[14px] bg-[var(--app-soft)] text-[var(--app-muted)] font-mono outline-none shadow-sm cursor-not-allowed"
+                      required
+                    />
                   </div>
-                )}
-              </div>
+                  <div className="flex-1">
+                    <label className="block text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5">To</label>
+                    <input 
+                      type="text" 
+                      value={to}
+                      readOnly
+                      placeholder="Select on calendar"
+                      className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-xl text-[14px] bg-[var(--app-soft)] text-[var(--app-muted)] font-mono outline-none shadow-sm cursor-not-allowed"
+                      required
+                    />
+                  </div>
+                </div>
 
-              <div className="mb-6">
-                <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">Reason (Optional)</label>
-                <textarea 
-                  rows="3" 
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all resize-none placeholder:text-[var(--app-muted)]" 
-                  placeholder="Briefly explain..."
-                ></textarea>
+                <div>
+                  <label className="block text-[12px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5">Reason (Optional)</label>
+                  <textarea 
+                    value={reason} 
+                    onChange={e => setReason(e.target.value)}
+                    placeholder="Brief reason for your leave..."
+                    className="w-full px-4 py-3 border border-[rgba(0,0,0,0.12)] rounded-xl text-[14px] bg-white text-[var(--app-ink)] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all shadow-sm min-h-[80px] resize-none"
+                  ></textarea>
+                </div>
               </div>
-
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-2.5 rounded-lg text-[13.5px] font-semibold bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all">Cancel</button>
-                <button type="submit" className="flex-1 py-2.5 rounded-lg text-[13.5px] font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all">Submit Request</button>
+              
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-3 rounded-xl text-[14px] font-bold text-[var(--app-ink)] bg-white border border-[rgba(0,0,0,0.12)] hover:bg-[var(--app-soft)] transition-colors shadow-sm">
+                  Cancel
+                </button>
+                <button type="submit" disabled={!from || !to} className={`flex-1 py-3 rounded-xl text-[14px] font-bold text-white transition-all shadow-sm ${(!from || !to) ? 'bg-blue-400 cursor-not-allowed opacity-70' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                  Submit Request
+                </button>
               </div>
             </form>
           </div>
@@ -421,9 +456,10 @@ function EmployeeLeaves() {
 
 export default function Leaves() {
   const role = localStorage.getItem('hrms_role') || 'admin';
+
   return (
     <>
-      <Topbar title={role === 'admin' ? "Leave Approvals" : "Leave Requests"} />
+      <Topbar title="Leave Management" subtitle="Time off requests and balances" />
       <div className="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
         {role === 'admin' ? <AdminLeaves /> : <EmployeeLeaves />}
       </div>

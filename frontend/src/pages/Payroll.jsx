@@ -1,16 +1,35 @@
+import { useState, useEffect } from 'react';
 import Topbar from '../components/Topbar';
-import { MY_PAYROLL, EMPLOYEES } from '../data/mockData';
-
 
 function AdminPayroll() {
-  const totalPayroll = 4325000;
+  const [employees, setEmployees] = useState([]);
+  const [payroll, setPayroll] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [empRes, payrollRes] = await Promise.all([
+          fetch('http://localhost:3000/api/employees'),
+          fetch('http://localhost:3000/api/payroll')
+        ]);
+        if (empRes.ok) setEmployees(await empRes.json());
+        if (payrollRes.ok) setPayroll(await payrollRes.json());
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const totalPayroll = payroll.reduce((acc, p) => acc + (p.netSalary || 0), 0);
+  const totalDeductions = payroll.reduce((acc, p) => acc + (p.deductions || 0), 0);
   
   return (
     <div className="flex-1 p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
         <div>
           <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">Payroll Processing</h1>
-          <p className="text-[13.5px] text-[var(--app-muted)]">Manage organization-wide payroll for June 2026.</p>
+          <p className="text-[13.5px] text-[var(--app-muted)]">Manage organization-wide payroll for the current month.</p>
         </div>
         <button className="px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all border border-blue-600">
           Run Payroll
@@ -19,10 +38,10 @@ function AdminPayroll() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Total Payroll (Jun)', val: '₹43.2L', sub: 'Processed', color: 'text-blue-600' },
-          { label: 'Employees Paid', val: EMPLOYEES.length, sub: '100% completed', color: 'text-green-600' },
-          { label: 'Taxes Withheld', val: '₹6.1L', sub: 'TDS + PT', color: 'text-amber-600' },
-          { label: 'PF Contributions', val: '₹4.8L', sub: 'Employer match', color: 'text-indigo-600' }
+          { label: 'Total Payroll (Jun)', val: `₹${(totalPayroll/100000).toFixed(1)}L`, sub: 'Processed', color: 'text-blue-600' },
+          { label: 'Employees Paid', val: payroll.length, sub: 'completed', color: 'text-green-600' },
+          { label: 'Total Deductions', val: `₹${(totalDeductions/100000).toFixed(1)}L`, sub: 'TDS + PT + PF', color: 'text-amber-600' },
+          { label: 'Total Allowances', val: `₹${(payroll.reduce((acc, p) => acc + (p.allowances || 0), 0)/100000).toFixed(1)}L`, sub: 'HRA + Special', color: 'text-indigo-600' }
         ].map((stat, i) => (
           <div key={i} className="liquid-card-shell rounded-[18px] p-5 card-elevate">
             <div className={`text-[26px] font-bold ${stat.color} leading-none mb-1 tracking-tight`}>{stat.val}</div>
@@ -34,7 +53,7 @@ function AdminPayroll() {
 
       <div className="liquid-card-shell rounded-[18px] overflow-hidden card-elevate">
         <div className="p-4 border-b border-[rgba(0,0,0,0.08)] bg-[var(--app-soft)] flex justify-between items-center">
-          <div className="text-[14px] font-bold text-[var(--app-ink)] tracking-tight">Employee Payroll (June 2026)</div>
+          <div className="text-[14px] font-bold text-[var(--app-ink)] tracking-tight">Employee Payroll</div>
           <input type="text" placeholder="Search employee..." className="px-3 py-1.5 border border-[rgba(0,0,0,0.12)] rounded-md text-[12.5px] bg-white w-[200px] outline-none focus:border-blue-500 transition-all" />
         </div>
         <div className="overflow-x-auto">
@@ -42,6 +61,7 @@ function AdminPayroll() {
             <thead className="bg-[rgba(0,0,0,0.02)] border-b border-[rgba(0,0,0,0.06)]">
               <tr>
                 <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Employee</th>
+                <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Month</th>
                 <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-right">Basic Salary</th>
                 <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-right">Allowances</th>
                 <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-right">Deductions</th>
@@ -50,26 +70,28 @@ function AdminPayroll() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-              {EMPLOYEES.map((e, i) => {
-                const basic = 40000 + (i * 10000);
-                const allow = basic * 0.4;
-                const ded = basic * 0.12 + 200;
-                const net = basic + allow - ded;
+              {payroll.map(p => {
+                const emp = employees.find(e => e.id === p.empId);
                 return (
-                  <tr key={e.id} className="hover:bg-[rgba(0,0,0,0.01)] transition-colors">
-                    <td className="py-3.5 px-5 font-semibold text-[var(--app-ink)]">{e.name}</td>
-                    <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-right">₹{basic.toLocaleString()}</td>
-                    <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-right">₹{allow.toLocaleString()}</td>
-                    <td className="py-3.5 px-5 font-mono text-red-500 text-right">-₹{ded.toLocaleString()}</td>
-                    <td className="py-3.5 px-5 font-mono text-[var(--app-ink)] font-bold text-right">₹{net.toLocaleString()}</td>
-                    <td className="py-3.5 px-5 text-center">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border bg-green-50 text-green-700 border-green-200">
-                        Paid
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+                <tr key={p.id} className="hover:bg-[rgba(0,0,0,0.01)] transition-colors">
+                  <td className="py-3.5 px-5 font-semibold text-[var(--app-ink)]">{emp ? emp.name : p.empId}</td>
+                  <td className="py-3.5 px-5 text-[var(--app-muted)]">{p.month}</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-right">₹{p.basic.toLocaleString()}</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-right">₹{p.allowances.toLocaleString()}</td>
+                  <td className="py-3.5 px-5 font-mono text-red-500 text-right">-₹{p.deductions.toLocaleString()}</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-ink)] font-bold text-right">₹{p.netSalary.toLocaleString()}</td>
+                  <td className="py-3.5 px-5 text-center">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border bg-green-50 text-green-700 border-green-200">
+                      {p.status}
+                    </span>
+                  </td>
+                </tr>
+              )})}
+              {payroll.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="py-8 text-center text-[13px] text-[var(--app-muted)]">No payroll records found.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -79,6 +101,44 @@ function AdminPayroll() {
 }
 
 function EmployeePayroll() {
+  const [payroll, setPayroll] = useState(null);
+  const user = JSON.parse(localStorage.getItem('hrms_user') || '{}');
+
+  useEffect(() => {
+    if (!user.id) return;
+    const fetchPayroll = async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/payroll/${user.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.length > 0) {
+            setPayroll(data[0]); // Get most recent payroll
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchPayroll();
+  }, [user.id]);
+
+  if (!payroll) {
+    return (
+      <div className="flex-1 p-8 flex items-center justify-center flex-col gap-4 text-[var(--app-muted)]">
+        <div className="text-[20px] font-bold">No Payroll Data</div>
+        <p className="text-[14px]">Your payroll data has not been generated for this month yet.</p>
+      </div>
+    );
+  }
+
+  // Assuming structure has basic, allowances, deductions, netSalary, month
+  // Since db structure is flat basic, allowances, deductions, netSalary, we make some assumptions for breakdown:
+  const hra = payroll.allowances * 0.6;
+  const special = payroll.allowances * 0.4;
+  const pf = payroll.deductions * 0.5;
+  const pt = 200;
+  const tds = payroll.deductions - pf - pt;
+
   return (
     <div className="flex-1 p-8 max-w-[1000px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
@@ -94,11 +154,11 @@ function EmployeePayroll() {
       <div className="liquid-card-shell rounded-[18px] p-8 card-elevate mb-8 bg-gradient-to-br from-blue-50/50 to-transparent">
         <div className="flex justify-between items-center flex-wrap gap-6">
           <div>
-            <div className="text-[13px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-2">Net Salary — {MY_PAYROLL.month}</div>
-            <div className="text-[40px] font-black text-[var(--app-ink)] tracking-tight font-mono mb-2">₹90,300.00</div>
+            <div className="text-[13px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-2">Net Salary — {payroll.month}</div>
+            <div className="text-[40px] font-black text-[var(--app-ink)] tracking-tight font-mono mb-2">₹{payroll.netSalary.toLocaleString()}</div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-green-100 text-green-800 border border-green-200">
               <span className="w-2 h-2 rounded-full bg-green-500"></span>
-              Credited to HDFC Bank (**** 8432)
+              Credited (Status: {payroll.status})
             </div>
           </div>
           <div className="text-right">
@@ -113,40 +173,40 @@ function EmployeePayroll() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
           <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight border-b border-[rgba(0,0,0,0.06)] pb-4 text-green-700 flex justify-between">
-            Earnings <span>₹{MY_PAYROLL.earnings.total.toLocaleString()}</span>
+            Earnings <span>₹{(payroll.basic + payroll.allowances).toLocaleString()}</span>
           </h2>
           <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center text-[13.5px]">
               <span className="text-[var(--app-muted)] font-medium">Basic Salary</span>
-              <span className="font-mono font-medium text-[var(--app-ink)]">₹{MY_PAYROLL.earnings.basic.toLocaleString()}</span>
+              <span className="font-mono font-medium text-[var(--app-ink)]">₹{payroll.basic.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center text-[13.5px]">
               <span className="text-[var(--app-muted)] font-medium">HRA</span>
-              <span className="font-mono font-medium text-[var(--app-ink)]">₹{MY_PAYROLL.earnings.hra.toLocaleString()}</span>
+              <span className="font-mono font-medium text-[var(--app-ink)]">₹{hra.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center text-[13.5px]">
               <span className="text-[var(--app-muted)] font-medium">Special Allowance</span>
-              <span className="font-mono font-medium text-[var(--app-ink)]">₹{MY_PAYROLL.earnings.special.toLocaleString()}</span>
+              <span className="font-mono font-medium text-[var(--app-ink)]">₹{special.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
         <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
           <h2 className="text-[15px] font-bold text-[var(--app-ink)] mb-4 tracking-tight border-b border-[rgba(0,0,0,0.06)] pb-4 text-red-600 flex justify-between">
-            Deductions <span>₹{MY_PAYROLL.deductions.total.toLocaleString()}</span>
+            Deductions <span>₹{payroll.deductions.toLocaleString()}</span>
           </h2>
           <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center text-[13.5px]">
               <span className="text-[var(--app-muted)] font-medium">PF (Employee)</span>
-              <span className="font-mono font-medium text-[var(--app-ink)]">₹{MY_PAYROLL.deductions.pf.toLocaleString()}</span>
+              <span className="font-mono font-medium text-[var(--app-ink)]">₹{pf.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center text-[13.5px]">
               <span className="text-[var(--app-muted)] font-medium">Professional Tax</span>
-              <span className="font-mono font-medium text-[var(--app-ink)]">₹{MY_PAYROLL.deductions.pt.toLocaleString()}</span>
+              <span className="font-mono font-medium text-[var(--app-ink)]">₹{pt.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center text-[13.5px]">
               <span className="text-[var(--app-muted)] font-medium">TDS</span>
-              <span className="font-mono font-medium text-[var(--app-ink)]">₹{MY_PAYROLL.deductions.tds.toLocaleString()}</span>
+              <span className="font-mono font-medium text-[var(--app-ink)]">₹{tds.toLocaleString()}</span>
             </div>
           </div>
         </div>
