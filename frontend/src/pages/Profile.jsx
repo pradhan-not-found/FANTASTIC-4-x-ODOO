@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import Topbar from '../components/Topbar';
-import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 import { X, Camera } from 'lucide-react';
 
 export default function Profile() {
@@ -8,6 +8,7 @@ export default function Profile() {
   const idCardRef = useRef(null);
   const [activeTab, setActiveTab] = useState('resume');
   const [isEditing, setIsEditing] = useState(false);
+  const [editTab, setEditTab] = useState('basic');
   
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -87,18 +88,19 @@ export default function Profile() {
   const handleDownload = async () => {
     if (!idCardRef.current || !profile) return;
     try {
-      const canvas = await html2canvas(idCardRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: null
+      const dataUrl = await htmlToImage.toPng(idCardRef.current, {
+        pixelRatio: 2,
+        backgroundColor: 'white'
       });
-      const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.download = `${profile.name.replace(/\s+/g, '_')}_ID_Card.png`;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (err) {
       console.error("Failed to download ID card", err);
+      alert("Failed to download ID card: " + err.message);
     }
   };
 
@@ -159,7 +161,7 @@ export default function Profile() {
             <div className="flex items-end gap-6 flex-wrap relative z-10">
               <div className="w-[100px] h-[100px] bg-blue-100 border-[4px] border-white rounded-2xl flex items-center justify-center text-blue-700 font-bold text-[36px] shadow-sm overflow-hidden bg-cover bg-center">
                 {profile.avatar ? (
-                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={profile.avatar} alt="Avatar" crossOrigin="anonymous" className="w-full h-full object-cover" />
                 ) : (
                   profile.name && profile.name.split(' ').map(n => n[0]).join('')
                 )}
@@ -350,7 +352,7 @@ export default function Profile() {
                 <div className="px-5 pb-5 flex flex-col items-center text-center -mt-8 relative z-10">
                   <div className="w-16 h-16 rounded-full border-4 border-white bg-blue-100 flex items-center justify-center font-bold text-[20px] text-blue-700 shadow-sm mb-3 overflow-hidden bg-cover bg-center">
                     {profile.avatar ? (
-                      <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                      <img src={profile.avatar} alt="Avatar" crossOrigin="anonymous" className="w-full h-full object-cover" />
                     ) : (
                       profile.name && profile.name.split(' ').map(n => n[0]).join('')
                     )}
@@ -442,7 +444,7 @@ export default function Profile() {
                       <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-2xl bg-blue-100 border border-blue-200 flex items-center justify-center font-bold text-[20px] text-blue-700 shadow-sm overflow-hidden relative group bg-cover bg-center">
                           {profile.avatar ? (
-                            <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                            <img src={profile.avatar} alt="Avatar" crossOrigin="anonymous" className="w-full h-full object-cover" />
                           ) : (
                             profile.name && profile.name.split(' ').map(n => n[0]).join('')
                           )}
