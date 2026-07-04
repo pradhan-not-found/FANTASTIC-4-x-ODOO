@@ -48,8 +48,8 @@ export default function Sidebar({ role = 'admin' }) {
 
   return (
     <aside className="w-64 h-screen fixed left-0 top-0 bg-transparent flex flex-col z-[100] overflow-y-auto border-r border-[rgba(0,0,0,0.06)] bg-white/50 backdrop-blur-md">
-      <div className="flex items-center justify-center py-6 h-[80px]">
-        <img src="/logo.png" alt="Logo" className="h-10 w-auto object-contain shrink-0 grayscale brightness-0 opacity-90" />
+      <div className="flex items-center justify-center py-6 h-[72px] mt-2 mb-2">
+        <img src="/logo.png" alt="Logo" className="h-7 w-auto max-w-[160px] object-contain shrink-0 grayscale brightness-0 opacity-90" />
       </div>
 
       <div className="px-6 py-4 flex items-center gap-3 bg-transparent">

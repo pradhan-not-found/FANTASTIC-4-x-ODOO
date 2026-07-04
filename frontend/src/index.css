@@ -177,7 +177,7 @@
 
   /* Apple-style floating app shell & custom sidebar items */
   .apple-inset {
-    margin: 8px;
+    margin: 8px 8px 8px calc(16rem + 8px) !important;
     border-radius: 16px;
     border: 1px solid rgba(0, 0, 0, 0.08);
     background-color: #ffffff;
@@ -187,7 +187,7 @@
   }
   @media (min-width: 1024px) {
     .apple-inset {
-      margin: 12px;
+      margin: 12px 12px 12px calc(16rem + 12px) !important;
       border-radius: 20px;
     }
   }
