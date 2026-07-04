@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import Topbar from '../components/Topbar';
 import { EMPLOYEES, ATTENDANCE_TODAY, LEAVE_REQUESTS, DEPT_STATS, MY_PROFILE } from '../data/mockData';
 import { 
@@ -162,9 +163,9 @@ function EmployeeDashboard() {
           </div>
           <p className="text-[13.5px] text-[var(--app-muted)]">You have 2 notifications today.</p>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
+        <Link to="/leaves" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-[13.5px] font-bold bg-[#171717] text-white hover:bg-black shadow-sm transition-all">
           Request Leave
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

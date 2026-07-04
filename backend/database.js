@@ -23,7 +23,23 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 avatar TEXT,
                 joinDate TEXT,
                 salary REAL,
-                phone TEXT
+                phone TEXT,
+                about TEXT,
+                loveAboutJob TEXT,
+                interests TEXT,
+                skills TEXT,
+                certifications TEXT,
+                dob TEXT,
+                residingAddress TEXT,
+                nationality TEXT,
+                personalEmail TEXT,
+                gender TEXT,
+                maritalStatus TEXT,
+                bankAccountNo TEXT,
+                bankName TEXT,
+                ifsc TEXT,
+                pan TEXT,
+                uan TEXT
             )`);
 
             db.run(`CREATE TABLE IF NOT EXISTS attendance (

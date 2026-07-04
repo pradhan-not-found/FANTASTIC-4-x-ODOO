@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Topbar from '../components/Topbar';
-import { LEAVE_REQUESTS, EMPLOYEES, CALENDAR_STATUS } from '../data/mockData';
+import { LEAVE_REQUESTS, EMPLOYEES, CALENDAR_STATUS, MY_PROFILE, MY_LEAVES, initData } from '../data/mockData';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function InteractiveCalendar({ from, to, setFrom, setTo }) {
@@ -89,8 +89,28 @@ function InteractiveCalendar({ from, to, setFrom, setTo }) {
 
 
 function AdminLeaves() {
-  const pending = LEAVE_REQUESTS.filter(l => l.status === 'pending');
-  const history = LEAVE_REQUESTS.filter(l => l.status !== 'pending');
+  const [requests, setRequests] = useState(LEAVE_REQUESTS);
+  
+  const pending = requests.filter(l => l.status === 'Pending' || l.status === 'pending');
+  const history = requests.filter(l => l.status !== 'Pending' && l.status !== 'pending');
+
+  const handleUpdateStatus = async (id, status) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/leaves/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (response.ok) {
+        await initData();
+        setRequests(LEAVE_REQUESTS); // re-fetch from mockData
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update status');
+    }
+  };
 
   return (
     <div className="flex-1 p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -113,17 +133,17 @@ function AdminLeaves() {
                 <div key={l.id} className="p-4 rounded-xl border border-[rgba(0,0,0,0.06)] bg-[rgba(0,0,0,0.02)] flex flex-wrap gap-4 justify-between items-center transition-all hover:bg-[rgba(0,0,0,0.03)]">
                   <div className="flex gap-4 items-center">
                     <div className="w-10 h-10 rounded-full bg-white border border-[rgba(0,0,0,0.08)] flex items-center justify-center font-bold text-[13px] text-blue-700 shadow-sm shrink-0">
-                      {l.empName.split(' ').map(n=>n[0]).join('')}
+                      {l.empId ? l.empId.substring(0,3) : 'EMP'}
                     </div>
                     <div>
-                      <div className="font-bold text-[14px] text-[var(--app-ink)]">{l.empName}</div>
+                      <div className="font-bold text-[14px] text-[var(--app-ink)]">{l.empId}</div>
                       <div className="text-[12.5px] text-[var(--app-muted)] mt-0.5">{l.type} • {l.days} day{l.days > 1 ? 's' : ''}</div>
-                      <div className="text-[11.5px] text-[var(--app-muted)] mt-1 font-mono">{l.from} to {l.to}</div>
+                      <div className="text-[11.5px] text-[var(--app-muted)] mt-1 font-mono">{l.fromDate} to {l.toDate}</div>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button className="px-4 py-2 rounded-lg text-[12.5px] font-bold bg-white text-red-600 border border-[rgba(0,0,0,0.12)] hover:bg-red-50 transition-colors shadow-sm">Reject</button>
-                    <button className="px-4 py-2 rounded-lg text-[12.5px] font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">Approve</button>
+                    <button onClick={() => handleUpdateStatus(l.id, 'Rejected')} className="px-4 py-2 rounded-lg text-[12.5px] font-bold bg-white text-red-600 border border-[rgba(0,0,0,0.12)] hover:bg-red-50 transition-colors shadow-sm">Reject</button>
+                    <button onClick={() => handleUpdateStatus(l.id, 'Approved')} className="px-4 py-2 rounded-lg text-[12.5px] font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm">Approve</button>
                   </div>
                 </div>
               ))}
@@ -147,14 +167,14 @@ function AdminLeaves() {
                 <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
                   {history.map(l => (
                     <tr key={l.id}>
-                      <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{l.empName}</td>
+                      <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{l.empId}</td>
                       <td className="py-3.5 px-4">
                         <div className="font-medium text-[var(--app-ink)]">{l.type}</div>
-                        <div className="text-[11.5px] text-[var(--app-muted)] font-mono">{l.from} - {l.to}</div>
+                        <div className="text-[11.5px] text-[var(--app-muted)] font-mono">{l.fromDate} - {l.toDate}</div>
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11.5px] font-semibold border ${
-                          l.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                          (l.status === 'approved' || l.status === 'Approved') ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
                         }`}>
                           {l.status}
                         </span>
@@ -195,41 +215,51 @@ function AdminLeaves() {
 
 function EmployeeLeaves() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [requests, setRequests] = useState(LEAVE_REQUESTS.filter(l => l.empId === 'EMP-001'));
+  const [requests, setRequests] = useState(MY_LEAVES);
   
   const [type, setType] = useState('Paid Leave');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [reason, setReason] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!from || !to) return;
     
-    // Calculate simple days difference (naive for UI purposes)
+    // Calculate simple days difference
     const fromDate = new Date(from);
     const toDate = new Date(to);
     const diffTime = Math.abs(toDate - fromDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-    const newRequest = {
-      id: `req-${Date.now()}`,
-      empId: 'EMP-001',
-      empName: 'Souradeep Pradhan',
-      type,
-      from,
-      to,
-      days: diffDays,
-      reason: reason || 'N/A',
-      status: 'pending'
-    };
+    try {
+      const response = await fetch('http://localhost:3000/api/leaves', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          empId: MY_PROFILE.id || 'EMP-001',
+          type,
+          fromDate: from,
+          toDate: to,
+          days: diffDays,
+          reason: reason || 'N/A'
+        })
+      });
 
-    setRequests([newRequest, ...requests]);
-    setModalOpen(false);
-    setType('Paid Leave');
-    setFrom('');
-    setTo('');
-    setReason('');
+      if (response.ok) {
+        await initData();
+        setRequests(MY_LEAVES); // from mockData
+        setModalOpen(false);
+        setType('Paid Leave');
+        setFrom('');
+        setTo('');
+        setReason('');
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to submit request');
+    }
   };
 
   return (

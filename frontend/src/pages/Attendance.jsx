@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Topbar from '../components/Topbar';
-import { ATTENDANCE_TODAY, EMPLOYEES, MY_ATTENDANCE } from '../data/mockData';
+import { ATTENDANCE_TODAY, EMPLOYEES, MY_ATTENDANCE, MY_PROFILE } from '../data/mockData';
 
 
 function AdminAttendance() {
@@ -116,6 +116,23 @@ function AdminAttendance() {
 function EmployeeAttendance() {
   const [viewMode, setViewMode] = useState('daily');
 
+  const handleCheckIn = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/attendance/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ empId: MY_PROFILE.id || 'EMP-001' })
+      });
+      if (response.ok) {
+        alert('Checked in successfully!');
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to check in');
+    }
+  };
+
   return (
     <div className="flex-1 p-8 max-w-[1000px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
@@ -128,7 +145,7 @@ function EmployeeAttendance() {
             <button onClick={() => setViewMode('daily')} className={`px-4 py-1.5 rounded-md text-[13px] font-semibold transition-all ${viewMode === 'daily' ? 'bg-white text-[var(--app-ink)] shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-ink)]'}`}>Daily</button>
             <button onClick={() => setViewMode('weekly')} className={`px-4 py-1.5 rounded-md text-[13px] font-semibold transition-all ${viewMode === 'weekly' ? 'bg-white text-[var(--app-ink)] shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-ink)]'}`}>Weekly</button>
           </div>
-          <button className="px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-green-600 text-white hover:bg-green-700 shadow-sm transition-all border border-green-700">
+          <button onClick={handleCheckIn} className="px-5 py-2.5 rounded-lg text-[13.5px] font-semibold bg-green-600 text-white hover:bg-green-700 shadow-sm transition-all border border-green-700">
             ✓ Check In Now
           </button>
         </div>

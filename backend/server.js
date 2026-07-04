@@ -1,12 +1,29 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./database');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Configure Multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = path.join(__dirname, 'uploads/avatars');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${req.params.id}-${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
+const upload = multer({ storage });
 
 // AUTH
 app.post('/api/auth/signup', (req, res) => {
@@ -29,7 +46,12 @@ app.post('/api/auth/signup', (req, res) => {
         
         db.run('INSERT INTO employees (id, name, email, password, role, status, joinDate) VALUES (?, ?, ?, ?, ?, ?, ?)', 
         [generatedId, name, email, password, role || 'employee', 'active', joinDate], function(err) {
-            if (err) return res.status(500).json({ error: err.message });
+            if (err) {
+                if (err.message.includes('UNIQUE constraint failed: employees.email')) {
+                    return res.status(400).json({ error: 'An account with this email already exists.' });
+                }
+                return res.status(500).json({ error: err.message });
+            }
             res.json({ success: true, id: generatedId });
         });
     });
@@ -70,6 +92,34 @@ app.get('/api/employees/:id', (req, res) => {
     });
 });
 
+app.put('/api/employees/:id', (req, res) => {
+    const { name, department, position, phone, about, loveAboutJob, interests, skills, certifications, dob, residingAddress, nationality, personalEmail, gender, maritalStatus, bankAccountNo, bankName, ifsc, pan, uan } = req.body;
+    db.run(
+        'UPDATE employees SET name = ?, department = ?, position = ?, phone = ?, about = ?, loveAboutJob = ?, interests = ?, skills = ?, certifications = ?, dob = ?, residingAddress = ?, nationality = ?, personalEmail = ?, gender = ?, maritalStatus = ?, bankAccountNo = ?, bankName = ?, ifsc = ?, pan = ?, uan = ? WHERE id = ?',
+        [name, department, position, phone, about, loveAboutJob, interests, skills, certifications, dob, residingAddress, nationality, personalEmail, gender, maritalStatus, bankAccountNo, bankName, ifsc, pan, uan, req.params.id],
+        function (err) {
+            if (err) return res.status(500).json({ error: err.message });
+            if (this.changes === 0) return res.status(404).json({ error: 'Employee not found' });
+            res.json({ success: true, message: 'Profile updated' });
+        }
+    );
+});
+
+app.post('/api/employees/:id/avatar', upload.single('avatar'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    // Create the public URL path
+    const avatarUrl = `http://localhost:3000/uploads/avatars/${req.file.filename}`;
+    
+    db.run('UPDATE employees SET avatar = ? WHERE id = ?', [avatarUrl, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, avatar: avatarUrl });
+    });
+});
+
+
 // ATTENDANCE
 app.get('/api/attendance', (req, res) => {
     db.all('SELECT * FROM attendance', [], (err, rows) => {
@@ -94,6 +144,33 @@ app.get('/api/attendance/:empId', (req, res) => {
     });
 });
 
+app.post('/api/attendance/checkin', (req, res) => {
+    const { empId } = req.body;
+    const date = new Date().toISOString().split('T')[0];
+    const checkIn = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    const id = `ATT-${Date.now()}`;
+    db.run(
+        'INSERT INTO attendance (id, empId, date, checkIn, status) VALUES (?, ?, ?, ?, ?)',
+        [id, empId, date, checkIn, 'present'],
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, message: 'Checked in' });
+        }
+    );
+});
+
+app.put('/api/attendance/checkout/:id', (req, res) => {
+    const checkOut = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    db.run(
+        'UPDATE attendance SET checkOut = ? WHERE id = ?',
+        [checkOut, req.params.id],
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, message: 'Checked out' });
+        }
+    );
+});
+
 // LEAVES
 app.get('/api/leaves', (req, res) => {
     db.all('SELECT * FROM leaves', [], (err, rows) => {
@@ -109,6 +186,32 @@ app.get('/api/leaves/:empId', (req, res) => {
     });
 });
 
+app.post('/api/leaves', (req, res) => {
+    const { empId, type, fromDate, toDate, days, reason } = req.body;
+    const id = `LV-${Date.now()}`;
+    const status = 'Pending';
+    const appliedOn = new Date().toISOString().split('T')[0];
+    db.run(
+        'INSERT INTO leaves (id, empId, type, fromDate, toDate, days, status, reason, appliedOn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [id, empId, type, fromDate, toDate, days, status, reason, appliedOn],
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, message: 'Leave applied successfully' });
+        }
+    );
+});
+
+app.put('/api/leaves/:id', (req, res) => {
+    const { status } = req.body;
+    db.run(
+        'UPDATE leaves SET status = ? WHERE id = ?',
+        [status, req.params.id],
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ success: true, message: 'Leave status updated' });
+        }
+    );
+});
 // PAYROLL
 app.get('/api/payroll', (req, res) => {
     db.all('SELECT * FROM payroll', [], (err, rows) => {

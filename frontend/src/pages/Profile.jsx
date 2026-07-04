@@ -1,12 +1,64 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Topbar from '../components/Topbar';
-import { MY_PROFILE, MY_PAYROLL } from '../data/mockData';
+import { MY_PROFILE, MY_PAYROLL, initData } from '../data/mockData';
 import html2canvas from 'html2canvas';
+import { X, Camera } from 'lucide-react';
 
 export default function Profile() {
   const role = localStorage.getItem('hrms_role') || 'admin';
   const idCardRef = useRef(null);
   const [activeTab, setActiveTab] = useState('resume');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTab, setEditTab] = useState('basic');
+  const [editForm, setEditForm] = useState({
+    name: MY_PROFILE.name || '',
+    department: MY_PROFILE.department || '',
+    position: MY_PROFILE.position || '',
+    phone: MY_PROFILE.phone || '',
+    about: MY_PROFILE.about || '',
+    loveAboutJob: MY_PROFILE.loveAboutJob || '',
+    interests: MY_PROFILE.interests || '',
+    skills: MY_PROFILE.skills ? MY_PROFILE.skills.join(', ') : '',
+    certifications: MY_PROFILE.certifications ? MY_PROFILE.certifications.join(', ') : '',
+    dob: MY_PROFILE.dob || '',
+    residingAddress: MY_PROFILE.residingAddress || '',
+    nationality: MY_PROFILE.nationality || '',
+    personalEmail: MY_PROFILE.personalEmail || '',
+    gender: MY_PROFILE.gender || '',
+    maritalStatus: MY_PROFILE.maritalStatus || '',
+    bankAccountNo: MY_PROFILE.bankDetails?.accountNo || '',
+    bankName: MY_PROFILE.bankDetails?.bankName || '',
+    ifsc: MY_PROFILE.bankDetails?.ifsc || '',
+    pan: MY_PROFILE.bankDetails?.pan || '',
+    uan: MY_PROFILE.bankDetails?.uan || ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setIsUploading(true);
+    
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    try {
+      const response = await fetch(`http://localhost:3000/api/employees/${MY_PROFILE.id}/avatar`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw new Error('Failed to upload image');
+      
+      await initData();
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading avatar: ' + err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleDownload = async () => {
     if (!idCardRef.current) return;
@@ -25,6 +77,44 @@ export default function Profile() {
       console.error("Failed to download ID card", err);
     }
   };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      const payload = {
+        ...editForm,
+        skills: JSON.stringify(editForm.skills.split(',').map(s => s.trim()).filter(Boolean)),
+        certifications: JSON.stringify(editForm.certifications.split(',').map(s => s.trim()).filter(Boolean))
+      };
+      
+      const response = await fetch(`http://localhost:3000/api/employees/${MY_PROFILE.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) throw new Error('Failed to update profile');
+      
+      // Update local storage user name just in case
+      const userStr = localStorage.getItem('hrms_user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        user.name = editForm.name;
+        localStorage.setItem('hrms_user', JSON.stringify(user));
+      }
+      
+      await initData(); // Re-fetch the mock data from DB
+      setIsEditing(false);
+      window.location.reload(); // Refresh to see changes applied everywhere
+    } catch (err) {
+      console.error(err);
+      alert('Error updating profile: ' + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <>
       <Topbar title="My Profile" subtitle="Manage your personal information" />
@@ -38,8 +128,12 @@ export default function Profile() {
           </div>
           <div className="px-8 pb-8 pt-0 relative flex flex-wrap items-end justify-between gap-6 -mt-12">
             <div className="flex items-end gap-6 flex-wrap relative z-10">
-              <div className="w-[100px] h-[100px] bg-blue-100 border-[4px] border-white rounded-2xl flex items-center justify-center text-blue-700 font-bold text-[36px] shadow-sm">
-                {MY_PROFILE.name.split(' ').map(n => n[0]).join('')}
+              <div className="w-[100px] h-[100px] bg-blue-100 border-[4px] border-white rounded-2xl flex items-center justify-center text-blue-700 font-bold text-[36px] shadow-sm overflow-hidden bg-cover bg-center">
+                {MY_PROFILE.avatar && MY_PROFILE.avatar !== 'SD' ? (
+                  <img src={MY_PROFILE.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  MY_PROFILE.name && MY_PROFILE.name.split(' ').map(n => n[0]).join('')
+                )}
               </div>
               <div className="mb-1">
                 <h1 className="text-[24px] font-bold text-[var(--app-ink)] tracking-tight mb-1">{MY_PROFILE.name}</h1>
@@ -50,7 +144,17 @@ export default function Profile() {
                 </div>
               </div>
             </div>
-            <button className="px-5 py-2.5 rounded-lg text-[13.5px] font-medium bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all mb-1 z-10">
+            <button 
+              onClick={() => {
+                setEditForm({
+                  name: MY_PROFILE.name || '',
+                  department: MY_PROFILE.department || '',
+                  position: MY_PROFILE.position || '',
+                  phone: MY_PROFILE.phone || ''
+                });
+                setIsEditing(true);
+              }}
+              className="px-5 py-2.5 rounded-lg text-[13.5px] font-medium bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all mb-1 z-10">
               Edit Profile
             </button>
           </div>
@@ -285,10 +389,14 @@ export default function Profile() {
                 {/* Body Section */}
                 <div className="flex-1 flex gap-5 w-full relative z-10 pt-1 pb-2">
                   {/* Photo container with halftone/grayscale effect */}
-                  <div className="flex-1 bg-[#d4d4cb] flex items-center justify-center overflow-hidden mix-blend-multiply grayscale contrast-125 border border-[#1a1a1a]/10 relative">
-                     <span className="text-[#a8a89e] font-black text-[80px] opacity-40 tracking-tighter">
-                       {MY_PROFILE.name.split(' ').map(n=>n[0]).join('')}
-                     </span>
+                  <div className="flex-1 bg-[#d4d4cb] flex items-center justify-center overflow-hidden mix-blend-multiply grayscale contrast-125 border border-[#1a1a1a]/10 relative bg-cover bg-center">
+                     {MY_PROFILE.avatar && MY_PROFILE.avatar !== 'SD' ? (
+                       <img src={MY_PROFILE.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                     ) : (
+                       <span className="text-[#a8a89e] font-black text-[80px] opacity-40 tracking-tighter">
+                         {MY_PROFILE.name.split(' ').map(n=>n[0]).join('')}
+                       </span>
+                     )}
                      {/* Scanline effect */}
                      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px] pointer-events-none opacity-30"></div>
                   </div>
@@ -341,6 +449,152 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditing && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-[500px] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-[rgba(0,0,0,0.06)] bg-gray-50/50">
+              <h2 className="text-[18px] font-bold text-[var(--app-ink)]">Edit Profile</h2>
+              <button 
+                onClick={() => setIsEditing(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+            
+            <div className="flex border-b border-[rgba(0,0,0,0.06)]">
+              <button type="button" onClick={() => setEditTab('basic')} className={`flex-1 py-3 text-[13px] font-bold transition-all ${editTab === 'basic' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-[var(--app-muted)] hover:bg-gray-50'}`}>Basic</button>
+              <button type="button" onClick={() => setEditTab('extended')} className={`flex-1 py-3 text-[13px] font-bold transition-all ${editTab === 'extended' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-[var(--app-muted)] hover:bg-gray-50'}`}>Extended</button>
+              <button type="button" onClick={() => setEditTab('bank')} className={`flex-1 py-3 text-[13px] font-bold transition-all ${editTab === 'bank' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-[var(--app-muted)] hover:bg-gray-50'}`}>Bank</button>
+            </div>
+            
+            <div className="max-h-[60vh] overflow-y-auto p-6 no-scrollbar">
+              {/* Avatar Upload */}
+              <div className="mb-6 flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm bg-cover bg-center">
+                   {MY_PROFILE.avatar && MY_PROFILE.avatar !== 'SD' ? (
+                     <img src={MY_PROFILE.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                   ) : (
+                     <span className="text-blue-700 font-bold text-xl">{MY_PROFILE.name.split(' ').map(n=>n[0]).join('')}</span>
+                   )}
+                </div>
+                <div className="flex-1">
+                  <label className="text-[13px] font-bold text-[var(--app-ink)] block mb-1">Profile Picture</label>
+                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-[13px] font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors shadow-sm">
+                    <Camera size={16} />
+                    {isUploading ? 'Uploading...' : 'Upload Photo'}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={isUploading} />
+                  </label>
+                </div>
+              </div>
+
+              <form onSubmit={handleSaveProfile} id="editProfileForm">
+                {editTab === 'basic' && (
+                  <div className="grid grid-cols-1 gap-5">
+                    <div>
+                      <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Full Name</label>
+                      <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Phone Number</label>
+                      <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.phone} onChange={e => setEditForm({...editForm, phone: e.target.value})} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Department</label>
+                        <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.department} onChange={e => setEditForm({...editForm, department: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Position</label>
+                        <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.position} onChange={e => setEditForm({...editForm, position: e.target.value})} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Personal Email</label>
+                      <input type="email" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.personalEmail} onChange={e => setEditForm({...editForm, personalEmail: e.target.value})} />
+                    </div>
+                  </div>
+                )}
+                
+                {editTab === 'extended' && (
+                  <div className="grid grid-cols-1 gap-5">
+                    <div>
+                      <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">About Me</label>
+                      <textarea className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all min-h-[80px]" value={editForm.about} onChange={e => setEditForm({...editForm, about: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">What I Love About My Job</label>
+                      <textarea className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all min-h-[80px]" value={editForm.loveAboutJob} onChange={e => setEditForm({...editForm, loveAboutJob: e.target.value})} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">DOB (YYYY-MM-DD)</label>
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.dob} onChange={e => setEditForm({...editForm, dob: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Nationality</label>
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.nationality} onChange={e => setEditForm({...editForm, nationality: e.target.value})} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Address</label>
+                      <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.residingAddress} onChange={e => setEditForm({...editForm, residingAddress: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Skills (comma separated)</label>
+                      <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.skills} onChange={e => setEditForm({...editForm, skills: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Certifications (comma separated)</label>
+                      <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.certifications} onChange={e => setEditForm({...editForm, certifications: e.target.value})} />
+                    </div>
+                  </div>
+                )}
+                
+                {editTab === 'bank' && (
+                  <div className="grid grid-cols-1 gap-5">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Bank Name</label>
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.bankName} onChange={e => setEditForm({...editForm, bankName: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">Account Number</label>
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.bankAccountNo} onChange={e => setEditForm({...editForm, bankAccountNo: e.target.value})} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">IFSC Code</label>
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.ifsc} onChange={e => setEditForm({...editForm, ifsc: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">PAN</label>
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.pan} onChange={e => setEditForm({...editForm, pan: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 uppercase">UAN</label>
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] font-medium text-[var(--app-ink)] outline-none focus:border-blue-500 transition-all" value={editForm.uan} onChange={e => setEditForm({...editForm, uan: e.target.value})} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </form>
+            </div>
+            
+            <div className="p-6 border-t border-[rgba(0,0,0,0.06)] bg-gray-50/50 flex gap-3">
+              <button type="button" onClick={() => setIsEditing(false)} className="flex-1 py-3.5 rounded-xl text-[14px] font-bold bg-white border border-gray-200 text-[var(--app-ink)] hover:bg-gray-100 transition-all">
+                Cancel
+              </button>
+              <button type="submit" form="editProfileForm" disabled={isSaving} className="flex-1 py-3.5 rounded-xl text-[14px] font-bold bg-blue-600 border border-transparent text-white hover:bg-blue-700 disabled:opacity-70 transition-all shadow-[0_8px_24px_-8px_rgba(37,99,235,0.5)]">
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
