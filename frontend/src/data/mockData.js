@@ -62,8 +62,26 @@ export const PAYROLL = [
   { empId: 'EMP-006', name: 'Neha Joshi',        basic: 62000, hra: 18600, da: 6200,  pf: 7440,  tax: 6200,  net: 73160, month: 'June 2026', status: 'paid'    },
 ];
 
-export const MY_PAYROLL = PAYROLL.find(p => p.empId === 'EMP-001');
+export const MY_PROFILE = {
+  ...CURRENT_USER,
+  location: 'Mumbai, India',
+};
 
+export const MY_PAYROLL = {
+  ...PAYROLL.find(p => p.empId === 'EMP-001'),
+  earnings: {
+    basic: 40000,
+    hra: 16000,
+    special: 34300,
+    total: 90300
+  },
+  deductions: {
+    pf: 1800,
+    pt: 200,
+    tds: 0,
+    total: 2000
+  }
+};
 export const CALENDAR_STATUS = {
   1: 'present', 2: 'present', 3: 'half', 4: 'on-leave', 7: 'present',
   8: 'present', 9: 'present', 10: 'present', 11: 'present', 14: 'present',
