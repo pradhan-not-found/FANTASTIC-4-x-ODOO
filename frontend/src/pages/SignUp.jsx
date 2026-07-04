@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AlertTriangle, User, Shield, ArrowRight, ArrowLeft, MailCheck, ChevronDown, Check } from 'lucide-react';
 
 export default function SignUp() {
-  const [form, setForm] = useState({ empId: '', name: '', email: '', password: '', confirm: '', role: 'employee' });
+  const [form, setForm] = useState({ empId: '', first: '', last: '', email: '', password: '', confirm: '', role: 'employee' });
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +23,7 @@ export default function SignUp() {
   const handleNext = (e) => {
     e.preventDefault();
     setError('');
-    if (!form.empId || !form.name || !form.email) { setError('All fields are required.'); return; }
+    if (!form.empId || !form.first || !form.last || !form.email) { setError('All fields are required.'); return; }
     setStep(2);
   };
 
@@ -33,8 +33,30 @@ export default function SignUp() {
     if (!form.password || form.password.length < 8) { setError('Password must be at least 8 characters.'); return; }
     if (form.password !== form.confirm) { setError('Passwords do not match.'); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setStep(3);
+    
+    try {
+      const response = await fetch('http://localhost:3000/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: form.empId,
+          name: `${form.first} ${form.last}`,
+          email: form.email,
+          department: 'Unassigned',
+          position: form.role,
+          status: 'Active',
+          avatar: '',
+          joinDate: new Date().toISOString().split('T')[0],
+          salary: '$0',
+          phone: ''
+        })
+      });
+      if (!response.ok) throw new Error('Failed to create account');
+      setStep(3);
+    } catch (err) {
+      setError(err.message);
+    }
+    
     setLoading(false);
   };
 
