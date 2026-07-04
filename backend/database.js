@@ -76,9 +76,22 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 pf REAL,
                 tax REAL,
                 net REAL,
+                allowances REAL DEFAULT 0,
+                deductions REAL DEFAULT 0,
+                netSalary REAL DEFAULT 0,
+                presentDays INTEGER DEFAULT 0,
+                lopDays INTEGER DEFAULT 0,
                 month TEXT,
                 status TEXT,
                 FOREIGN KEY(empId) REFERENCES employees(id)
+            )`);
+            db.run(`CREATE TABLE IF NOT EXISTS notices (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                content TEXT NOT NULL,
+                type TEXT NOT NULL,
+                author TEXT,
+                createdAt TEXT
             )`);
         });
     }

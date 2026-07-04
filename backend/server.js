@@ -122,14 +122,27 @@ app.post('/api/employees/:id/avatar', upload.single('avatar'), (req, res) => {
 
 // ATTENDANCE
 app.get('/api/attendance', (req, res) => {
-    db.all('SELECT * FROM attendance', [], (err, rows) => {
+    const { date, empId } = req.query;
+    let sql = 'SELECT * FROM attendance';
+    const params = [];
+    if (date && empId) {
+        sql += ' WHERE date = ? AND empId = ?';
+        params.push(date, empId);
+    } else if (date) {
+        sql += ' WHERE date = ?';
+        params.push(date);
+    } else if (empId) {
+        sql += ' WHERE empId = ?';
+        params.push(empId);
+    }
+    sql += ' ORDER BY date DESC, checkIn DESC';
+    db.all(sql, params, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
 });
 
 app.get('/api/attendance/today', (req, res) => {
-    // Assuming today's date is passed as a query param or derived
     const today = new Date().toISOString().split('T')[0]; 
     db.all('SELECT * FROM attendance WHERE date = ?', [today], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -138,7 +151,7 @@ app.get('/api/attendance/today', (req, res) => {
 });
 
 app.get('/api/attendance/:empId', (req, res) => {
-    db.all('SELECT * FROM attendance WHERE empId = ?', [req.params.empId], (err, rows) => {
+    db.all('SELECT * FROM attendance WHERE empId = ? ORDER BY date DESC', [req.params.empId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
@@ -146,40 +159,61 @@ app.get('/api/attendance/:empId', (req, res) => {
 
 app.post('/api/attendance/checkin', (req, res) => {
     const { empId } = req.body;
+    if (!empId) return res.status(400).json({ error: 'empId is required' });
     const date = new Date().toISOString().split('T')[0];
     const checkIn = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    db.run(
-        'INSERT INTO attendance (empId, date, checkIn, status) VALUES (?, ?, ?, ?)',
-        [empId, date, checkIn, 'present'],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, message: 'Checked in', id: this.lastID });
-        }
-    );
+    // Prevent double check-in on same day
+    db.get('SELECT id FROM attendance WHERE empId = ? AND date = ?', [empId, date], (err, existing) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (existing) return res.status(400).json({ error: 'Already checked in today' });
+        db.run(
+            'INSERT INTO attendance (empId, date, checkIn, status) VALUES (?, ?, ?, ?)',
+            [empId, date, checkIn, 'present'],
+            function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true, message: 'Checked in', id: this.lastID });
+            }
+        );
+    });
 });
 
 app.put('/api/attendance/checkout/:id', (req, res) => {
     const checkOut = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    db.run(
-        'UPDATE attendance SET checkOut = ? WHERE id = ?',
-        [checkOut, req.params.id],
-        function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, message: 'Checked out' });
+    // Compute hours worked
+    db.get('SELECT checkIn FROM attendance WHERE id = ?', [req.params.id], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        let hours = null;
+        if (row && row.checkIn) {
+            const [inH, inM] = row.checkIn.split(':').map(Number);
+            const [outH, outM] = checkOut.split(':').map(Number);
+            const diffMins = (outH * 60 + outM) - (inH * 60 + inM);
+            if (diffMins > 0) {
+                const h = Math.floor(diffMins / 60);
+                const m = diffMins % 60;
+                hours = `${h}h ${m}m`;
+            }
         }
-    );
+        db.run(
+            'UPDATE attendance SET checkOut = ?, hours = ? WHERE id = ?',
+            [checkOut, hours, req.params.id],
+            function(err) {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true, message: 'Checked out', checkOut, hours });
+            }
+        );
+    });
 });
 
 // LEAVES
 app.get('/api/leaves', (req, res) => {
-    db.all('SELECT * FROM leaves', [], (err, rows) => {
+    db.all('SELECT * FROM leaves ORDER BY appliedOn DESC', [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
 });
 
 app.get('/api/leaves/:empId', (req, res) => {
-    db.all('SELECT * FROM leaves WHERE empId = ?', [req.params.empId], (err, rows) => {
+    db.all('SELECT * FROM leaves WHERE empId = ? ORDER BY appliedOn DESC', [req.params.empId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
@@ -187,15 +221,18 @@ app.get('/api/leaves/:empId', (req, res) => {
 
 app.post('/api/leaves', (req, res) => {
     const { empId, type, fromDate, toDate, days, reason } = req.body;
+    if (!empId || !type || !fromDate || !toDate || !days) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
     const id = `LV-${Date.now()}`;
     const status = 'Pending';
     const appliedOn = new Date().toISOString().split('T')[0];
     db.run(
         'INSERT INTO leaves (id, empId, type, fromDate, toDate, days, status, reason, appliedOn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [id, empId, type, fromDate, toDate, days, status, reason, appliedOn],
+        [id, empId, type, fromDate, toDate, days, status, reason || '', appliedOn],
         function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            res.json({ success: true, message: 'Leave applied successfully' });
+            res.json({ success: true, message: 'Leave applied successfully', id });
         }
     );
 });
@@ -211,21 +248,116 @@ app.put('/api/leaves/:id', (req, res) => {
         }
     );
 });
+
 // PAYROLL
 app.get('/api/payroll', (req, res) => {
-    db.all('SELECT * FROM payroll', [], (err, rows) => {
+    db.all('SELECT * FROM payroll ORDER BY month DESC', [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
 });
 
 app.get('/api/payroll/:empId', (req, res) => {
-    db.all('SELECT * FROM payroll WHERE empId = ?', [req.params.empId], (err, rows) => {
+    db.all('SELECT * FROM payroll WHERE empId = ? ORDER BY month DESC', [req.params.empId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
+    });
+});
+
+// Run payroll for all employees for a given month
+app.post('/api/payroll/run', (req, res) => {
+    const { month } = req.body; // e.g. "2026-07"
+    if (!month) return res.status(400).json({ error: 'month is required (YYYY-MM)' });
+
+    db.all('SELECT * FROM employees WHERE status = ?', ['active'], (err, employees) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (employees.length === 0) return res.status(400).json({ error: 'No active employees found' });
+
+        // Count attendance days for each employee for the month
+        const monthStart = `${month}-01`;
+        const monthEnd = `${month}-31`;
+
+        let processed = 0;
+        let errors = [];
+
+        employees.forEach(emp => {
+            db.get(
+                'SELECT COUNT(*) as presentDays FROM attendance WHERE empId = ? AND date >= ? AND date <= ? AND status = ?',
+                [emp.id, monthStart, monthEnd, 'present'],
+                (err, row) => {
+                    if (err) { errors.push(emp.id); return; }
+                    const presentDays = row ? row.presentDays : 0;
+                    const totalWorkingDays = 26; // Standard working days per month
+
+                    const monthlySalary = emp.salary || 30000;
+                    const perDaySalary = monthlySalary / totalWorkingDays;
+                    const lopDays = Math.max(0, totalWorkingDays - presentDays);
+                    const lopDeduction = Math.round(lopDays * perDaySalary);
+
+                    const basic = Math.round(monthlySalary * 0.5);
+                    const hra = Math.round(monthlySalary * 0.3);
+                    const special = Math.round(monthlySalary * 0.2);
+                    const allowances = hra + special;
+
+                    const pf = Math.round(basic * 0.12);
+                    const pt = 200;
+                    const tds = Math.round((monthlySalary - 250000 / 12) * 0.1);
+                    const totalDeductions = pf + pt + Math.max(0, tds) + lopDeduction;
+                    const net = Math.max(0, basic + allowances - totalDeductions);
+
+                    // Check if payroll already exists for this emp+month
+                    db.get('SELECT id FROM payroll WHERE empId = ? AND month = ?', [emp.id, month], (err2, existing) => {
+                        if (existing) {
+                            db.run(
+                                'UPDATE payroll SET basic=?, hra=?, da=?, pf=?, tax=?, net=?, allowances=?, deductions=?, netSalary=?, presentDays=?, lopDays=?, status=? WHERE empId=? AND month=?',
+                                [basic, hra, special, pf, Math.max(0, tds), net, allowances, totalDeductions, net, presentDays, lopDays, 'Processed', emp.id, month],
+                                () => { processed++; if (processed === employees.length) res.json({ success: true, message: `Payroll run for ${processed} employees`, month }); }
+                            );
+                        } else {
+                            db.run(
+                                'INSERT INTO payroll (empId, basic, hra, da, pf, tax, net, allowances, deductions, netSalary, presentDays, lopDays, month, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                                [emp.id, basic, hra, special, pf, Math.max(0, tds), net, allowances, totalDeductions, net, presentDays, lopDays, month, 'Processed'],
+                                () => { processed++; if (processed === employees.length) res.json({ success: true, message: `Payroll run for ${processed} employees`, month }); }
+                            );
+                        }
+                    });
+                }
+            );
+        });
+    });
+});
+
+// NOTICES
+app.get('/api/notices', (req, res) => {
+    db.all('SELECT * FROM notices ORDER BY createdAt DESC', [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+app.post('/api/notices', (req, res) => {
+    const { title, content, type, author } = req.body;
+    if (!title || !content || !type) return res.status(400).json({ error: 'Missing required fields' });
+    const createdAt = new Date().toISOString().split('T')[0];
+    db.run(
+        'INSERT INTO notices (title, content, type, author, createdAt) VALUES (?, ?, ?, ?, ?)',
+        [title, content, type, author || 'HR', createdAt],
+        function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.status(201).json({ success: true, id: this.lastID });
+        }
+    );
+});
+
+app.delete('/api/notices/:id', (req, res) => {
+    db.run('DELETE FROM notices WHERE id = ?', [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
     });
 });
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+

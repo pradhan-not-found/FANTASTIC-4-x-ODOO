@@ -4,22 +4,150 @@ import Topbar from '../components/Topbar';
 function AdminPayroll() {
   const [employees, setEmployees] = useState([]);
   const [payroll, setPayroll] = useState([]);
+  const [running, setRunning] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [empRes, payrollRes] = await Promise.all([
-          fetch('http://localhost:3000/api/employees'),
-          fetch('http://localhost:3000/api/payroll')
-        ]);
-        if (empRes.ok) setEmployees(await empRes.json());
-        if (payrollRes.ok) setPayroll(await payrollRes.json());
-      } catch (err) {
-        console.error(err);
+  const fetchData = async () => {
+    try {
+      const [empRes, payrollRes] = await Promise.all([
+        fetch('http://localhost:3000/api/employees'),
+        fetch('http://localhost:3000/api/payroll')
+      ]);
+      if (empRes.ok) setEmployees(await empRes.json());
+      if (payrollRes.ok) setPayroll(await payrollRes.json());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const handleRunPayroll = async () => {
+    if (!selectedMonth) return;
+    const confirm = window.confirm(`Run payroll for ${selectedMonth}? This will compute salaries based on attendance.`);
+    if (!confirm) return;
+    setRunning(true);
+    try {
+      const res = await fetch('http://localhost:3000/api/payroll/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month: selectedMonth })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ ${data.message}`);
+        fetchData();
+      } else {
+        alert(`❌ Error: ${data.error}`);
       }
-    };
-    fetchData();
-  }, []);
+    } catch (err) {
+      alert('Failed to run payroll');
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const filteredPayroll = payroll.filter(p => p.month === selectedMonth);
+  const totalNet = filteredPayroll.reduce((acc, p) => acc + (p.netSalary || p.net || 0), 0);
+  const totalDeductions = filteredPayroll.reduce((acc, p) => acc + (p.deductions || 0), 0);
+  const totalAllowances = filteredPayroll.reduce((acc, p) => acc + (p.allowances || 0), 0);
+
+  return (
+    <div className="flex-1 p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
+        <div>
+          <h1 className="text-[22px] font-bold text-[var(--app-ink)] mb-1 tracking-tight">Payroll Processing</h1>
+          <p className="text-[13.5px] text-[var(--app-muted)]">Manage organization-wide payroll for the current month.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={e => setSelectedMonth(e.target.value)}
+            className="px-4 py-2 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13px] bg-white text-[var(--app-ink)] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 shadow-sm"
+          />
+          <button
+            onClick={handleRunPayroll}
+            disabled={running}
+            className={`px-5 py-2.5 rounded-lg text-[13.5px] font-semibold shadow-sm transition-all border ${running ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600'}`}
+          >
+            {running ? 'Running...' : '⚡ Run Payroll'}
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'Total Net Payroll', val: `₹${(totalNet/100000).toFixed(1)}L`, sub: selectedMonth, color: 'text-blue-600' },
+          { label: 'Employees Paid', val: filteredPayroll.length, sub: 'this month', color: 'text-green-600' },
+          { label: 'Total Deductions', val: `₹${(totalDeductions/100000).toFixed(1)}L`, sub: 'PF + PT + TDS + LOP', color: 'text-amber-600' },
+          { label: 'Total Allowances', val: `₹${(totalAllowances/100000).toFixed(1)}L`, sub: 'HRA + Special', color: 'text-indigo-600' }
+        ].map((stat, i) => (
+          <div key={i} className="liquid-card-shell rounded-[18px] p-5 card-elevate">
+            <div className={`text-[26px] font-bold ${stat.color} leading-none mb-1 tracking-tight`}>{stat.val}</div>
+            <div className="text-[12.5px] font-semibold uppercase tracking-widest text-[var(--app-muted)] mb-1">{stat.label}</div>
+            <div className="text-[11.5px] font-medium text-[var(--app-muted)]">{stat.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="liquid-card-shell rounded-[18px] overflow-hidden card-elevate">
+        <div className="p-4 border-b border-[rgba(0,0,0,0.08)] bg-[var(--app-soft)] flex justify-between items-center">
+          <div className="text-[14px] font-bold text-[var(--app-ink)] tracking-tight">Employee Payroll — {selectedMonth}</div>
+          <input type="text" placeholder="Search employee..." className="px-3 py-1.5 border border-[rgba(0,0,0,0.12)] rounded-md text-[12.5px] bg-white w-[200px] outline-none focus:border-blue-500 transition-all" />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13.5px] text-left">
+            <thead className="bg-[rgba(0,0,0,0.02)] border-b border-[rgba(0,0,0,0.06)]">
+              <tr>
+                <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)]">Employee</th>
+                <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-center">Days Present</th>
+                <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-center">LOP Days</th>
+                <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-right">Basic</th>
+                <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-right">Allowances</th>
+                <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-right">Deductions</th>
+                <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-right">Net Pay</th>
+                <th className="py-3 px-5 text-[11px] font-bold uppercase tracking-widest text-[var(--app-muted)] text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
+              {filteredPayroll.map(p => {
+                const emp = employees.find(e => e.id === p.empId);
+                const netPay = p.netSalary || p.net || 0;
+                return (
+                <tr key={p.id} className="hover:bg-[rgba(0,0,0,0.01)] transition-colors">
+                  <td className="py-3.5 px-5 font-semibold text-[var(--app-ink)]">{emp ? emp.name : p.empId}</td>
+                  <td className="py-3.5 px-5 text-center font-mono text-green-700 font-bold">{p.presentDays ?? '-'}</td>
+                  <td className="py-3.5 px-5 text-center font-mono text-red-500 font-bold">{p.lopDays ?? '-'}</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-right">₹{(p.basic||0).toLocaleString()}</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-muted)] text-right">₹{(p.allowances||0).toLocaleString()}</td>
+                  <td className="py-3.5 px-5 font-mono text-red-500 text-right">-₹{(p.deductions||0).toLocaleString()}</td>
+                  <td className="py-3.5 px-5 font-mono text-[var(--app-ink)] font-bold text-right">₹{netPay.toLocaleString()}</td>
+                  <td className="py-3.5 px-5 text-center">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border bg-green-50 text-green-700 border-green-200">
+                      {p.status}
+                    </span>
+                  </td>
+                </tr>
+              )})}
+              {filteredPayroll.length === 0 && (
+                <tr>
+                  <td colSpan="8" className="py-10 text-center text-[13px] text-[var(--app-muted)]">
+                    No payroll for {selectedMonth}. Click <strong>⚡ Run Payroll</strong> to generate.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
   const totalPayroll = payroll.reduce((acc, p) => acc + (p.netSalary || 0), 0);
   const totalDeductions = payroll.reduce((acc, p) => acc + (p.deductions || 0), 0);
