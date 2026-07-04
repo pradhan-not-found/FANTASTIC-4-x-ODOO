@@ -7,6 +7,7 @@ import Attendance from './pages/Attendance';
 import Leaves     from './pages/Leaves';
 import Payroll    from './pages/Payroll';
 import Employees  from './pages/Employees';
+import NoticeBoard from './pages/NoticeBoard';
 
 function ProtectedRoute({ children }) {
   const role = localStorage.getItem('hrms_role');
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/leaves"     element={<ProtectedRoute><Leaves /></ProtectedRoute>} />
         <Route path="/payroll"    element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
         <Route path="/employees"  element={<ProtectedRoute><Employees /></ProtectedRoute>} />
+        <Route path="/notices"    element={<ProtectedRoute><NoticeBoard /></ProtectedRoute>} />
         <Route path="*"           element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

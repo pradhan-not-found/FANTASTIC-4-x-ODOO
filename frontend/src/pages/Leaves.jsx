@@ -112,7 +112,42 @@ function AdminLeaves() {
 
 function EmployeeLeaves() {
   const [modalOpen, setModalOpen] = useState(false);
-  const myRequests = LEAVE_REQUESTS.filter(l => l.empId === 'EMP-001');
+  const [requests, setRequests] = useState(LEAVE_REQUESTS.filter(l => l.empId === 'EMP-001'));
+  
+  const [type, setType] = useState('Paid Leave');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [reason, setReason] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!from || !to) return;
+    
+    // Calculate simple days difference (naive for UI purposes)
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+    const diffTime = Math.abs(toDate - fromDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+
+    const newRequest = {
+      id: `req-${Date.now()}`,
+      empId: 'EMP-001',
+      empName: 'Souradeep Pradhan',
+      type,
+      from,
+      to,
+      days: diffDays,
+      reason: reason || 'N/A',
+      status: 'pending'
+    };
+
+    setRequests([newRequest, ...requests]);
+    setModalOpen(false);
+    setType('Paid Leave');
+    setFrom('');
+    setTo('');
+    setReason('');
+  };
 
   return (
     <div className="flex-1 p-8 max-w-[1200px] w-full mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
@@ -131,7 +166,7 @@ function EmployeeLeaves() {
           { label: 'Annual Paid', val: '12 / 15', sub: '3 days used' },
           { label: 'Sick Leave', val: '4 / 7', sub: '3 days used' },
           { label: 'Casual Leave', val: '2 / 5', sub: '3 days used' },
-          { label: 'Pending', val: '1', sub: 'Awaiting approval' }
+          { label: 'Pending', val: requests.filter(r => r.status === 'pending').length.toString(), sub: 'Awaiting approval' }
         ].map((stat, i) => (
           <div key={i} className="liquid-card-shell rounded-[18px] p-5 card-elevate">
             <div className="text-[12.5px] font-semibold uppercase tracking-widest text-[var(--app-muted)] mb-2">{stat.label}</div>
@@ -154,7 +189,7 @@ function EmployeeLeaves() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(0,0,0,0.06)]">
-              {myRequests.map(l => (
+              {requests.map(l => (
                 <tr key={l.id}>
                   <td className="py-3.5 px-4 font-semibold text-[var(--app-ink)]">{l.type}</td>
                   <td className="py-3.5 px-4">
@@ -173,7 +208,7 @@ function EmployeeLeaves() {
                   </td>
                 </tr>
               ))}
-              {myRequests.length === 0 && (
+              {requests.length === 0 && (
                 <tr><td colSpan="4" className="text-center py-6 text-[var(--app-muted)] text-[13.5px]">No requests found.</td></tr>
               )}
             </tbody>
@@ -191,35 +226,61 @@ function EmployeeLeaves() {
               </button>
             </div>
             
-            <div className="mb-4">
-              <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">Leave Type</label>
-              <select className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all bg-white cursor-pointer appearance-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'%236b6b6b\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M7 10l5 5 5-5z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '18px' }}>
-                <option>Paid Leave</option>
-                <option>Sick Leave</option>
-                <option>Unpaid Leave</option>
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">From Date</label>
-                <input type="date" className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all bg-white" />
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">Leave Type</label>
+                <select 
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all bg-white cursor-pointer appearance-none" 
+                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'%236b6b6b\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M7 10l5 5 5-5z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '18px' }}
+                >
+                  <option>Paid Leave</option>
+                  <option>Sick Leave</option>
+                  <option>Casual Leave</option>
+                  <option>Unpaid Leave</option>
+                </select>
               </div>
-              <div>
-                <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">To Date</label>
-                <input type="date" className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all bg-white" />
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">From Date</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={from}
+                    onChange={(e) => setFrom(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all bg-white" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">To Date</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={to}
+                    onChange={(e) => setTo(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all bg-white" 
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="mb-6">
-              <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">Reason (Optional)</label>
-              <textarea rows="3" className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all resize-none placeholder:text-[var(--app-muted)]" placeholder="Briefly explain..."></textarea>
-            </div>
+              <div className="mb-6">
+                <label className="block text-[12.5px] font-semibold text-[var(--app-muted)] mb-2 tracking-tight">Reason (Optional)</label>
+                <textarea 
+                  rows="3" 
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-[rgba(0,0,0,0.12)] rounded-lg text-[13.5px] outline-none focus:border-blue-500 transition-all resize-none placeholder:text-[var(--app-muted)]" 
+                  placeholder="Briefly explain..."
+                ></textarea>
+              </div>
 
-            <div className="flex gap-3">
-              <button onClick={() => setModalOpen(false)} className="flex-1 py-2.5 rounded-lg text-[13.5px] font-semibold bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all">Cancel</button>
-              <button onClick={() => setModalOpen(false)} className="flex-1 py-2.5 rounded-lg text-[13.5px] font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all">Submit Request</button>
-            </div>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-2.5 rounded-lg text-[13.5px] font-semibold bg-white border border-[rgba(0,0,0,0.12)] text-[var(--app-ink)] hover:bg-[var(--app-soft)] shadow-sm transition-all">Cancel</button>
+                <button type="submit" className="flex-1 py-2.5 rounded-lg text-[13.5px] font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all">Submit Request</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

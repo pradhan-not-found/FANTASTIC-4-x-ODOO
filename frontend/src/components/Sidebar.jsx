@@ -8,7 +8,8 @@ import {
   Wallet, 
   Users, 
   LogOut,
-  ShieldAlert
+  ShieldAlert,
+  Bell
 } from 'lucide-react';
 
 const NAV_EMPLOYEE = [
@@ -20,6 +21,9 @@ const NAV_EMPLOYEE = [
   ]},
   { label: 'Account', items: [
     { to: '/profile',    icon: User,            label: 'My Profile'     },
+  ]},
+  { label: 'Communication', items: [
+    { to: '/notices',    icon: Bell,            label: 'Notice Board'   },
   ]},
 ];
 
@@ -35,6 +39,9 @@ const NAV_ADMIN = [
   ]},
   { label: 'Account', items: [
     { to: '/profile',    icon: User,            label: 'My Profile' },
+  ]},
+  { label: 'Communication', items: [
+    { to: '/notices',    icon: Bell,            label: 'Notice Board' },
   ]},
 ];
 
