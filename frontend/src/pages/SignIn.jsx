@@ -1,12 +1,24 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AlertTriangle, User, Shield, ArrowRight } from 'lucide-react';
+import { AlertTriangle, User, Shield, ChevronDown, Check } from 'lucide-react';
 
 export default function SignIn() {
   const [form, setForm] = useState({ email: '', password: '', role: 'employee' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const fillDemoAdmin = () => setForm({ email: 'admin@f4.co', password: 'admin123', role: 'admin' });
   const fillDemoEmployee = () => setForm({ email: 'employee@f4.co', password: 'emp123', role: 'employee' });
@@ -72,22 +84,46 @@ export default function SignIn() {
               />
             </div>
 
-            <div className="mb-8 relative">
+            <div className="mb-8 relative" ref={dropdownRef}>
               <label className="block text-[13px] font-bold text-[var(--app-muted)] mb-2 tracking-tight">Sign in as</label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--app-muted)] pointer-events-none">
-                  {form.role === 'admin' ? <Shield className="w-4 h-4" /> : <User className="w-4 h-4" />}
+              
+              {/* Custom Dropdown Trigger */}
+              <div 
+                className={`w-full px-4 py-3 bg-white border ${dropdownOpen ? 'border-blue-600 ring-[4px] ring-blue-600/10' : 'border-[rgba(0,0,0,0.15)]'} rounded-xl cursor-pointer flex items-center justify-between transition-all`}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                <div className="flex items-center gap-3 text-[var(--app-ink)] font-medium text-[15px]">
+                  {form.role === 'admin' ? <Shield className="w-4 h-4 text-blue-600" /> : <User className="w-4 h-4 text-[var(--app-muted)]" />}
+                  <span>{form.role === 'admin' ? 'Admin / HR Officer' : 'Employee'}</span>
                 </div>
-                <select 
-                  className="w-full pl-11 pr-4 py-3 bg-white border border-[rgba(0,0,0,0.15)] rounded-xl text-[var(--app-ink)] text-[15px] font-medium focus:border-blue-600 focus:ring-[4px] focus:ring-blue-600/10 transition-all outline-none appearance-none cursor-pointer"
-                  value={form.role} 
-                  onChange={e => setForm({ ...form, role: e.target.value })}
-                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'%236b6b6b\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M7 10l5 5 5-5z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', backgroundSize: '20px' }}
-                >
-                  <option value="employee">Employee</option>
-                  <option value="admin">Admin / HR Officer</option>
-                </select>
+                <ChevronDown className={`w-5 h-5 text-[var(--app-muted)] transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
               </div>
+              
+              {/* Custom Dropdown Menu */}
+              {dropdownOpen && (
+                <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border border-[rgba(0,0,0,0.12)] rounded-xl shadow-[0_16px_40px_-12px_rgba(0,0,0,0.2)] overflow-hidden z-[100] animate-in slide-in-from-top-2 fade-in duration-200">
+                  <div 
+                    className={`flex items-center justify-between px-4 py-3.5 hover:bg-[rgba(0,0,0,0.03)] cursor-pointer transition-colors border-b border-[rgba(0,0,0,0.04)] ${form.role === 'employee' ? 'bg-blue-50/50' : ''}`}
+                    onClick={() => { setForm({ ...form, role: 'employee' }); setDropdownOpen(false); }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <User className={`w-4 h-4 ${form.role === 'employee' ? 'text-blue-600' : 'text-[var(--app-muted)]'}`} />
+                      <span className={`text-[14.5px] font-medium ${form.role === 'employee' ? 'text-blue-700' : 'text-[var(--app-ink)]'}`}>Employee</span>
+                    </div>
+                    {form.role === 'employee' && <Check className="w-4 h-4 text-blue-600" />}
+                  </div>
+                  <div 
+                    className={`flex items-center justify-between px-4 py-3.5 hover:bg-[rgba(0,0,0,0.03)] cursor-pointer transition-colors ${form.role === 'admin' ? 'bg-blue-50/50' : ''}`}
+                    onClick={() => { setForm({ ...form, role: 'admin' }); setDropdownOpen(false); }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Shield className={`w-4 h-4 ${form.role === 'admin' ? 'text-blue-600' : 'text-[var(--app-muted)]'}`} />
+                      <span className={`text-[14.5px] font-medium ${form.role === 'admin' ? 'text-blue-700' : 'text-[var(--app-ink)]'}`}>Admin / HR Officer</span>
+                    </div>
+                    {form.role === 'admin' && <Check className="w-4 h-4 text-blue-600" />}
+                  </div>
+                </div>
+              )}
             </div>
 
             <button className="w-full flex items-center justify-center px-6 py-4 rounded-full text-[22px] font-serif bg-[#2D2E3E] text-white hover:bg-[#1f202b] shadow-lg transition-all mt-4" type="submit" disabled={loading}>
