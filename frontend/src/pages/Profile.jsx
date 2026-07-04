@@ -64,20 +64,7 @@ export default function Profile() {
                 </div>
               </div>
 
-              {/* Bank Details */}
-              <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
-                <h3 className="text-[15px] font-bold text-[var(--app-ink)] mb-5 tracking-tight border-b border-[rgba(0,0,0,0.06)] pb-4">Bank Information</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-6">
-                  <div>
-                    <label className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5 block">Bank Name</label>
-                    <div className="text-[14px] font-medium text-[var(--app-ink)] bg-[var(--app-soft)] px-3 py-2 rounded-lg">HDFC Bank</div>
-                  </div>
-                  <div>
-                    <label className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5 block">Account Number</label>
-                    <div className="text-[14px] font-mono text-[var(--app-ink)] bg-[var(--app-soft)] px-3 py-2 rounded-lg">•••• •••• 8432</div>
-                  </div>
-                </div>
-              </div>
+
             </div>
 
             <div className="flex flex-col gap-6">
@@ -152,6 +139,22 @@ export default function Profile() {
                   <div className="flex justify-between items-center p-3 rounded-xl bg-[var(--app-soft)] border border-[rgba(0,0,0,0.06)] text-[var(--app-ink)]">
                     <span className="text-[13px] font-semibold">Unpaid Leave</span>
                     <span className="text-[15px] font-bold">∞</span>
+                  </div>
+                </div>
+                </div>
+              </div>
+
+              {/* Bank Details */}
+              <div className="liquid-card-shell rounded-[18px] p-6 card-elevate">
+                <h3 className="text-[15px] font-bold text-[var(--app-ink)] mb-5 tracking-tight border-b border-[rgba(0,0,0,0.06)] pb-4">Bank Information</h3>
+                <div className="flex flex-col gap-5">
+                  <div>
+                    <label className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5 block">Bank Name</label>
+                    <div className="text-[14px] font-medium text-[var(--app-ink)] bg-[var(--app-soft)] px-3 py-2 rounded-lg">HDFC Bank</div>
+                  </div>
+                  <div>
+                    <label className="text-[11.5px] font-bold uppercase tracking-widest text-[var(--app-muted)] mb-1.5 block">Account Number</label>
+                    <div className="text-[14px] font-mono text-[var(--app-ink)] bg-[var(--app-soft)] px-3 py-2 rounded-lg">•••• •••• 8432</div>
                   </div>
                 </div>
               </div>
